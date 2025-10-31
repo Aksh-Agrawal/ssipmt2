@@ -14,6 +14,11 @@ export interface ApiResponse<T> {
   message: string;
 }
 
+export interface ApiSingleResponse<T> {
+  report: T;
+  message: string;
+}
+
 export interface ApiError {
   error: string;
   message?: string;
@@ -61,10 +66,27 @@ export async function fetchReports(authToken: string): Promise<Report[]> {
 }
 
 /**
+ * Fetches a single report by ID for admin dashboard
+ */
+export async function fetchReport(authToken: string, reportId: string): Promise<Report> {
+  const response = await makeAuthenticatedRequest<ApiSingleResponse<Report>>(
+    `/api/v1/admin/reports/${reportId}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    }
+  );
+
+  return response.report;
+}
+
+/**
  * API client instance
  */
 export const apiClient = {
   reports: {
     fetchAll: fetchReports,
+    fetchById: fetchReport,
   },
 };

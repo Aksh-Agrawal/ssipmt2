@@ -173,9 +173,12 @@ export default function ReportsList({ className = '' }: ReportsListProps) {
                 </div>
                 
                 <div className="flex-shrink-0">
-                  <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                  <a 
+                    href={`/dashboard/reports/${report.id}`}
+                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                  >
                     View Details
-                  </button>
+                  </a>
                 </div>
               </div>
             </li>
