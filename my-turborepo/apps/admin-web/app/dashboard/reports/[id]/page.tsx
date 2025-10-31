@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiClient } from '../../../../lib/api'
 import { createClient } from '../../../../lib/supabase/client'
-import type { Report } from '@repo/shared-types'
+import type { Report, ReportStatus } from '@repo/shared-types'
 
 // Simple components for this page
 const Button = ({ children, variant = 'default', className = '', ...props }: { 
@@ -56,6 +56,7 @@ export default function ReportDetailPage() {
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [statusUpdating, setStatusUpdating] = useState(false)
 
   useEffect(() => {
     async function loadReport() {
@@ -88,6 +89,44 @@ export default function ReportDetailPage() {
 
     loadReport()
   }, [reportId])
+
+  const handleStatusChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = event.target.value as ReportStatus
+    
+    if (!report || newStatus === report.status) {
+      return // No change needed
+    }
+
+    try {
+      setStatusUpdating(true)
+      
+      // Get auth token from Supabase client
+      const supabase = createClient()
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      
+      if (authError) {
+        throw new Error(`Authentication error: ${authError.message}`)
+      }
+
+      if (!session?.access_token) {
+        throw new Error('No authentication token available')
+      }
+
+      // Update status via API
+      const updatedReport = await apiClient.reports.updateStatus(session.access_token, reportId, newStatus)
+      
+      // Update local state immediately for responsive UI
+      setReport(updatedReport)
+      
+    } catch (err) {
+      console.error('Failed to update report status:', err)
+      // Revert the dropdown to original value on error
+      event.target.value = report.status
+      setError(err instanceof Error ? err.message : 'Failed to update status')
+    } finally {
+      setStatusUpdating(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -247,13 +286,40 @@ export default function ReportDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Actions */}
+          {/* Status Update */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Actions</h3>
+            <h3 className="text-lg font-semibold mb-4">Update Status</h3>
             <div className="space-y-3">
-              <Button className="w-full">
-                Update Status
-              </Button>
+              <div>
+                <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  Report Status
+                </label>
+                <select
+                  id="status-select"
+                  value={report.status}
+                  onChange={handleStatusChange}
+                  disabled={statusUpdating}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  <option value="Submitted">Submitted</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+              {statusUpdating && (
+                <div className="flex items-center text-sm text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Updating status...
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Other Actions */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Other Actions</h3>
+            <div className="space-y-3">
               <Button variant="outline" className="w-full">
                 Add Note
               </Button>

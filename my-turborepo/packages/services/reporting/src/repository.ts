@@ -72,6 +72,44 @@ export const reportRepository = {
     }
   },
 
+  async update(id: string, updates: Partial<Omit<Report, 'id' | 'createdAt'>>): Promise<Report | null> {
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Map Report interface fields to database columns
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.category !== undefined) updateData.category = updates.category;
+    if (updates.priority !== undefined) updateData.priority = updates.priority;
+    if (updates.userId !== undefined) updateData.citizen_id = updates.userId;
+    
+    if (updates.location !== undefined) {
+      updateData.location = updates.location ? 
+        `POINT(${updates.location.longitude} ${updates.location.latitude})` : null;
+    }
+    
+    if (updates.photoUrls !== undefined) {
+      updateData.photo_url = updates.photoUrls.length > 0 ? updates.photoUrls[0] : null;
+    }
+
+    const { data, error } = await supabase
+      .from('reports')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw new Error(`Failed to update report ${id}: ${error.message}`);
+    }
+
+    return this.mapDbToReport(data);
+  },
+
   async findAll(): Promise<Report[]> {
     const { data, error } = await supabase
       .from('reports')

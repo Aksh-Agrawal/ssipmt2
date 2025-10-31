@@ -3,7 +3,7 @@
  * Handles authenticated requests to the backend API
  */
 
-import type { Report } from '@repo/shared-types';
+import type { Report, ReportStatus } from '@repo/shared-types';
 
 // API base URL - should be configured via environment variable
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -82,11 +82,30 @@ export async function fetchReport(authToken: string, reportId: string): Promise<
 }
 
 /**
+ * Updates a report's status
+ */
+export async function updateReportStatus(authToken: string, reportId: string, status: ReportStatus): Promise<Report> {
+  const response = await makeAuthenticatedRequest<ApiSingleResponse<Report>>(
+    `/api/v1/admin/reports/${reportId}/status`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  return response.report;
+}
+
+/**
  * API client instance
  */
 export const apiClient = {
   reports: {
     fetchAll: fetchReports,
     fetchById: fetchReport,
+    updateStatus: updateReportStatus,
   },
 };
