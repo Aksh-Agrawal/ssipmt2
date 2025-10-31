@@ -18,6 +18,10 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('AgentChat');
   };
 
+  const handleCheckStatus = () => {
+    navigation.navigate('StatusCheck');
+  };
+
   return (
     <View style={styles.container}>
       <Title style={styles.title}>AI-Powered Civic Voice Assistant</Title>
@@ -43,6 +47,17 @@ const HomeScreen: React.FC = () => {
           testID="ask-question-button"
         >
           Ask a Question
+        </Button>
+        
+        <Button
+          mode="contained"
+          onPress={handleCheckStatus}
+          style={[styles.button, styles.thirdButton]}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.buttonLabel}
+          testID="check-status-button"
+        >
+          Check Report Status
         </Button>
       </View>
     </View>
@@ -73,6 +88,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   secondButton: {
+    marginBottom: 16,
+  },
+  thirdButton: {
     marginBottom: 0,
   },
   buttonContent: {

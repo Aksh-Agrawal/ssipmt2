@@ -53,6 +53,27 @@ export const reportRepository = {
     return this.mapDbToReport(data);
   },
 
+  async findByIdPublic(id: string): Promise<{ id: string; status: string; updatedAt: Date } | null> {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('id, status, updated_at')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw new Error(`Failed to find report: ${error.message}`);
+    }
+
+    return {
+      id: data.id,
+      status: data.status,
+      updatedAt: new Date(data.updated_at),
+    };
+  },
+
   async updateCategoryAndPriority(
     id: string, 
     category: ReportCategory, 

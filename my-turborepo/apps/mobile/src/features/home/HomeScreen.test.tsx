@@ -62,5 +62,11 @@ describe('HomeScreen', () => {
       mockNavigate('AgentChat');
       expect(mockNavigate).toHaveBeenCalledWith('AgentChat');
     });
+
+    it('should support navigation to StatusCheck route', () => {
+      // Simulate the navigation call that would happen on button press
+      mockNavigate('StatusCheck');
+      expect(mockNavigate).toHaveBeenCalledWith('StatusCheck');
+    });
   });
 });

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { submitReport } from '@repo/services-reporting';
+import { reportRepository } from '@repo/services-reporting';
 
 const reports = new Hono();
 
@@ -46,5 +47,32 @@ reports.post(
     }
   }
 );
+
+// GET /api/v1/reports/:id - Public endpoint for citizens to check report status
+reports.get('/:id', async (c) => {
+  try {
+    const reportId = c.req.param('id');
+    
+    const report = await reportRepository.findByIdPublic(reportId);
+    
+    if (!report) {
+      return c.json({
+        success: false,
+        error: 'Report not found'
+      }, 404);
+    }
+    
+    return c.json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    console.error('Error fetching report status:', error);
+    return c.json({
+      success: false,
+      error: 'Internal server error'
+    }, 500);
+  }
+});
 
 export default reports;

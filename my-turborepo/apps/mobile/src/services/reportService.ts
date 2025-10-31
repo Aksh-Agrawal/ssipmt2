@@ -14,6 +14,12 @@ export interface ReportSubmissionResponse {
   message: string;
 }
 
+export interface ReportStatusResponse {
+  id: string;
+  status: string;
+  updatedAt: Date;
+}
+
 class ReportService {
   private baseUrl = 'http://localhost:3000'; // Will be configurable in production
 
@@ -49,6 +55,40 @@ class ReportService {
       return result;
     } catch (error) {
       console.error('Report submission failed:', error);
+      throw error;
+    }
+  }
+
+  async getReportStatus(trackingId: string): Promise<ReportStatusResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/reports/${trackingId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Report not found (404)');
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success || !result.data) {
+        throw new Error('Invalid response format');
+      }
+
+      // Convert updatedAt string to Date object
+      return {
+        ...result.data,
+        updatedAt: new Date(result.data.updatedAt),
+      };
+    } catch (error) {
+      console.error('Report status check failed:', error);
       throw error;
     }
   }
