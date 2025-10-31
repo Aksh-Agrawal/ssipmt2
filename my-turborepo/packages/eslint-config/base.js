@@ -22,6 +22,18 @@ const config = [
     },
   },
   {
+    files: ["**/*.config.js", "**/babel.config.js"],
+    languageOptions: {
+      globals: {
+        module: "readonly",
+        require: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        process: "readonly",
+      },
+    },
+  },
+  {
     plugins: {
       onlyWarn,
     },
