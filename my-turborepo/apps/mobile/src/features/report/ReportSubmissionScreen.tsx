@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Platform, Image } from 'react-native';
 import { Title, Button, TextInput, Card, Paragraph, IconButton } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Voice from '@react-native-community/voice';
 import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import Geolocation from 'react-native-geolocation-service';
 import { reportService } from '../../services/reportService';
+import { RootStackParamList } from '../../navigation/types';
+
+type ReportSubmissionNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ReportSubmission'>;
 
 interface LocationData {
   latitude: number;
@@ -22,6 +27,7 @@ interface PhotoData {
 }
 
 const ReportSubmissionScreen: React.FC = () => {
+  const navigation = useNavigation<ReportSubmissionNavigationProp>();
   const [transcription, setTranscription] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
@@ -380,21 +386,13 @@ const ReportSubmissionScreen: React.FC = () => {
 
       const result = await reportService.submitReport(submissionData);
       
-      Alert.alert(
-        'Report Submitted!',
-        `Your report has been submitted successfully. Tracking ID: ${result.trackingId}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Clear the form after successful submission
-              setTranscription('');
-              setSelectedPhoto(null);
-              setLocationData(null);
-            },
-          },
-        ]
-      );
+      // Clear the form after successful submission
+      setTranscription('');
+      setSelectedPhoto(null);
+      setLocationData(null);
+      
+      // Navigate to confirmation screen with tracking ID
+      navigation.navigate('Confirmation', { trackingId: result.trackingId });
     } catch (error) {
       console.error('Report submission error:', error);
       Alert.alert(

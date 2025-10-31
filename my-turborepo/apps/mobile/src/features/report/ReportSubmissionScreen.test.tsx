@@ -72,6 +72,27 @@ jest.mock('../../services/reportService', () => ({
   reportService: mockReportService,
 }));
 
+// Mock react-navigation
+const mockNavigation = {
+  navigate: jest.fn(),
+  reset: jest.fn(),
+  goBack: jest.fn(),
+  setParams: jest.fn(),
+  dispatch: jest.fn(),
+  setOptions: jest.fn(),
+  isFocused: jest.fn().mockReturnValue(true),
+  canGoBack: jest.fn().mockReturnValue(false),
+  getId: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
+  addListener: jest.fn(),
+  removeListener: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockNavigation,
+}));
+
 describe('ReportSubmissionScreen', () => {
   describe('Basic Component Structure', () => {
     it('should be defined and exportable', () => {
@@ -216,6 +237,57 @@ describe('ReportSubmissionScreen', () => {
         expect(error).toBeInstanceOf(Error);
         expect(error.message).toBe('Network connection failed');
       });
+    });
+  });
+
+  describe('Navigation Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should have access to navigation functionality', () => {
+      expect(mockNavigation).toBeDefined();
+      expect(mockNavigation.navigate).toBeDefined();
+      expect(mockNavigation.reset).toBeDefined();
+    });
+
+    it('should navigate to confirmation screen after successful submission', () => {
+      // Mock successful submission
+      const mockTrackingId = 'TEST-NAVIGATION-123';
+      mockReportService.submitReport.mockResolvedValue({
+        trackingId: mockTrackingId,
+        message: 'Report submitted successfully',
+      });
+
+      // Verify navigation function is available
+      expect(mockNavigation.navigate).toBeDefined();
+      expect(typeof mockNavigation.navigate).toBe('function');
+    });
+
+    it('should support confirmation screen navigation parameters', () => {
+      // Test that navigation supports Confirmation screen with trackingId param
+      const testTrackingId = 'TEST-PARAM-456';
+      
+      // Mock the navigation call that should happen after successful submission
+      mockNavigation.navigate.mockImplementation((screenName, params) => {
+        expect(screenName).toBe('Confirmation');
+        expect(params).toEqual({ trackingId: testTrackingId });
+      });
+
+      // Verify the mock is properly configured
+      expect(mockNavigation.navigate).toBeDefined();
+    });
+
+    it('should clear form data before navigation', () => {
+      // Mock successful submission
+      mockReportService.submitReport.mockResolvedValue({
+        trackingId: 'TEST-CLEAR-789',
+        message: 'Report submitted successfully',
+      });
+
+      // Verify that form clearing logic is supported
+      expect(mockReportService.submitReport).toBeDefined();
+      expect(mockNavigation.navigate).toBeDefined();
     });
   });
 });

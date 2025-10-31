@@ -4,6 +4,7 @@ import { RootStackParamList } from './types';
 
 import HomeScreen from '../features/home/HomeScreen';
 import ReportSubmissionScreen from '../features/report/ReportSubmissionScreen';
+import ConfirmationScreen from '../features/report/ConfirmationScreen';
 import AgentChatScreen from '../features/agent/AgentChatScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,6 +32,11 @@ const MainStack: React.FC = () => {
         name="ReportSubmission" 
         component={ReportSubmissionScreen}
         options={{ title: 'Report an Issue' }}
+      />
+      <Stack.Screen 
+        name="Confirmation" 
+        component={ConfirmationScreen}
+        options={{ title: 'Report Submitted' }}
       />
       <Stack.Screen 
         name="AgentChat" 
