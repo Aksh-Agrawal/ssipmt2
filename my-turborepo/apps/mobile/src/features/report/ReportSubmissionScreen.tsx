@@ -5,6 +5,7 @@ import Voice from '@react-native-community/voice';
 import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import Geolocation from 'react-native-geolocation-service';
+import { reportService } from '../../services/reportService';
 
 interface LocationData {
   latitude: number;
@@ -361,6 +362,49 @@ const ReportSubmissionScreen: React.FC = () => {
     setTranscription('');
   };
 
+  const handleSubmitReport = async () => {
+    if (!transcription.trim()) {
+      Alert.alert('Error', 'Please add a description before submitting.');
+      return;
+    }
+
+    try {
+      const submissionData = {
+        description: transcription.trim(),
+        photoUri: selectedPhoto?.uri,
+        location: locationData ? {
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+        } : undefined,
+      };
+
+      const result = await reportService.submitReport(submissionData);
+      
+      Alert.alert(
+        'Report Submitted!',
+        `Your report has been submitted successfully. Tracking ID: ${result.trackingId}`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Clear the form after successful submission
+              setTranscription('');
+              setSelectedPhoto(null);
+              setLocationData(null);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Report submission error:', error);
+      Alert.alert(
+        'Submission Failed',
+        error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Title style={styles.title}>Report Civic Issue</Title>
@@ -445,7 +489,7 @@ const ReportSubmissionScreen: React.FC = () => {
             <View style={styles.actionButtons}>
               <Button
                 mode="contained"
-                onPress={() => Alert.alert('Submit Report', 'Report submission functionality will be implemented in future stories.')}
+                onPress={handleSubmitReport}
                 style={styles.submitButton}
                 icon="send"
               >

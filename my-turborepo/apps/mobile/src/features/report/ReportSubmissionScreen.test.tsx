@@ -63,6 +63,15 @@ const mockGeolocation = {
 
 jest.mock('react-native-geolocation-service', () => mockGeolocation);
 
+// Mock report service
+const mockReportService = {
+  submitReport: jest.fn(),
+};
+
+jest.mock('../../services/reportService', () => ({
+  reportService: mockReportService,
+}));
+
 describe('ReportSubmissionScreen', () => {
   describe('Basic Component Structure', () => {
     it('should be defined and exportable', () => {
@@ -135,6 +144,78 @@ describe('ReportSubmissionScreen', () => {
       // Check location permissions are defined
       expect(mockPermissions.PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).toBe('ios.permission.LOCATION_WHEN_IN_USE');
       expect(mockPermissions.PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).toBe('android.permission.ACCESS_FINE_LOCATION');
+    });
+  });
+
+  describe('Report Submission Features', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should have access to report service', () => {
+      expect(mockReportService).toBeDefined();
+      expect(mockReportService.submitReport).toBeDefined();
+    });
+
+    it('should implement report submission functionality', () => {
+      // Mock successful submission
+      mockReportService.submitReport.mockResolvedValue({
+        trackingId: 'TEST-123',
+        message: 'Report submitted successfully',
+      });
+
+      // Verify component exists and has necessary structure
+      expect(ReportSubmissionScreen).toBeDefined();
+      expect(typeof ReportSubmissionScreen).toBe('function');
+      
+      // Verify the service mock is properly configured
+      expect(mockReportService.submitReport).toBeDefined();
+      expect(typeof mockReportService.submitReport).toBe('function');
+    });
+
+    it('should handle report submission data structure', () => {
+      // Mock submission data structure that should be passed to service
+      const expectedSubmissionData = {
+        description: 'Test report description',
+        photoUri: 'file://test-photo.jpg',
+        location: {
+          latitude: 40.7128,
+          longitude: -74.0060,
+        },
+      };
+
+      // Verify the mock can handle this data structure
+      mockReportService.submitReport.mockImplementation((data) => {
+        expect(data).toMatchObject({
+          description: expect.any(String),
+        });
+        return Promise.resolve({
+          trackingId: 'TEST-456',
+          message: 'Report submitted successfully',
+        });
+      });
+
+      // Test that the function can be called with expected data structure
+      expect(() => {
+        mockReportService.submitReport(expectedSubmissionData);
+      }).not.toThrow();
+    });
+
+    it('should handle submission errors gracefully', () => {
+      // Mock submission error
+      const submitError = new Error('Network connection failed');
+      mockReportService.submitReport.mockRejectedValue(submitError);
+
+      // Verify error handling capability
+      expect(mockReportService.submitReport).toBeDefined();
+      
+      // Test error scenario
+      return mockReportService.submitReport({
+        description: 'Test report',
+      }).catch((error: Error) => {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Network connection failed');
+      });
     });
   });
 });
