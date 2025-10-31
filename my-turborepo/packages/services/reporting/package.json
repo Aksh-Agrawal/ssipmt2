@@ -11,7 +11,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "@repo/shared-types": "*"
+    "@google-cloud/language": "^7.2.1",
+    "@repo/shared-types": "*",
+    "@supabase/supabase-js": "^2.78.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

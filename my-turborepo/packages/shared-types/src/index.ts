@@ -1,12 +1,31 @@
 // Shared TypeScript types for the AI-Powered Civic Voice Assistant
 
+// Report categories based on common civic issues
+export type ReportCategory = 
+  | 'Pothole'
+  | 'Street Lighting'
+  | 'Waste Management'
+  | 'Water/Sewer'
+  | 'Traffic Signal'
+  | 'Sidewalk Repair'
+  | 'Noise Complaint'
+  | 'Graffiti'
+  | 'Parks/Recreation'
+  | 'Other';
+
+// Report priority levels matching database enum
+export type ReportPriority = 'Low' | 'Medium' | 'High';
+
+// Report status matching database enum
+export type ReportStatus = 'Submitted' | 'In Progress' | 'Resolved' | 'Rejected';
+
 export interface Report {
   id: string;
   userId: string;
   description: string;
-  category?: string;
-  priority?: number;
-  status: 'pending' | 'in-progress' | 'resolved' | 'closed';
+  category?: ReportCategory;
+  priority?: ReportPriority;
+  status: ReportStatus;
   location?: {
     latitude: number;
     longitude: number;
