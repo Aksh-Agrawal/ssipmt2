@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/react-native.json",
+  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
@@ -7,7 +7,12 @@
     "jsx": "react-native",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noEmit": true,
+    "types": ["react-native", "jest"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
