@@ -85,6 +85,42 @@ export const reportRepository = {
     return data.map(this.mapDbToReport);
   },
 
+  async findAllSorted(): Promise<Report[]> {
+    // Order by priority (High first, then Medium, then Low, then NULL/unprocessed)
+    // Use raw SQL for CASE statement ordering
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('priority', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch sorted reports: ${error.message}`);
+    }
+
+    // Since PostgreSQL ENUM ordering might not match our desired priority,
+    // we'll sort in JavaScript to ensure High > Medium > Low
+    const sortedData = data.sort((a, b) => {
+      // Define priority order: High = 1, Medium = 2, Low = 3, null = 4
+      const getPriorityValue = (priority: string | null) => {
+        switch (priority) {
+          case 'High': return 1;
+          case 'Medium': return 2;
+          case 'Low': return 3;
+          default: return 4; // null or undefined
+        }
+      };
+
+      const priorityDiff = getPriorityValue(a.priority) - getPriorityValue(b.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // If same priority, sort by created_at (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return sortedData.map(this.mapDbToReport);
+  },
+
   // Maps database row to Report interface
   mapDbToReport(dbRow: any): Report {
     return {

@@ -3,6 +3,9 @@ import { reportRepository } from './repository';
 import { ReportAnalyzer } from './nlp-analyzer';
 import { reportingConfig } from './config';
 
+// Export repository for admin API use
+export { reportRepository };
+
 export interface SubmitReportInput {
   description: string;
   photoUrl?: string;
