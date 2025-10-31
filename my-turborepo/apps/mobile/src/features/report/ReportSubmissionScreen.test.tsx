@@ -18,8 +18,18 @@ jest.mock('@react-native-community/voice', () => mockVoice);
 // Mock react-native-permissions
 const mockPermissions = {
   PERMISSIONS: {
-    IOS: { MICROPHONE: 'ios.permission.MICROPHONE' },
-    ANDROID: { RECORD_AUDIO: 'android.permission.RECORD_AUDIO' },
+    IOS: { 
+      MICROPHONE: 'ios.permission.MICROPHONE',
+      CAMERA: 'ios.permission.CAMERA',
+      PHOTO_LIBRARY: 'ios.permission.PHOTO_LIBRARY',
+      LOCATION_WHEN_IN_USE: 'ios.permission.LOCATION_WHEN_IN_USE',
+    },
+    ANDROID: { 
+      RECORD_AUDIO: 'android.permission.RECORD_AUDIO',
+      CAMERA: 'android.permission.CAMERA',
+      READ_EXTERNAL_STORAGE: 'android.permission.READ_EXTERNAL_STORAGE',
+      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
+    },
   },
   RESULTS: {
     GRANTED: 'granted',
@@ -29,6 +39,29 @@ const mockPermissions = {
 };
 
 jest.mock('react-native-permissions', () => mockPermissions);
+
+// Mock react-native-image-picker
+const mockImagePicker = {
+  launchImageLibrary: jest.fn(),
+  launchCamera: jest.fn(),
+  MediaType: {
+    photo: 'photo',
+    video: 'video',
+    mixed: 'mixed',
+  },
+};
+
+jest.mock('react-native-image-picker', () => mockImagePicker);
+
+// Mock react-native-geolocation-service
+const mockGeolocation = {
+  getCurrentPosition: jest.fn(),
+  watchPosition: jest.fn(),
+  clearWatch: jest.fn(),
+  stopObserving: jest.fn(),
+};
+
+jest.mock('react-native-geolocation-service', () => mockGeolocation);
 
 describe('ReportSubmissionScreen', () => {
   describe('Basic Component Structure', () => {
@@ -73,6 +106,35 @@ describe('ReportSubmissionScreen', () => {
       expect(mockPermissions.PERMISSIONS.IOS.MICROPHONE).toBe('ios.permission.MICROPHONE');
       expect(mockPermissions.PERMISSIONS.ANDROID.RECORD_AUDIO).toBe('android.permission.RECORD_AUDIO');
       expect(mockPermissions.RESULTS.GRANTED).toBe('granted');
+    });
+  });
+
+  describe('Photo Attachment Features', () => {
+    it('should have access to image picker library', () => {
+      expect(mockImagePicker).toBeDefined();
+      expect(mockImagePicker.launchCamera).toBeDefined();
+      expect(mockImagePicker.launchImageLibrary).toBeDefined();
+    });
+
+    it('should have access to geolocation library', () => {
+      expect(mockGeolocation).toBeDefined();
+      expect(mockGeolocation.getCurrentPosition).toBeDefined();
+    });
+
+    it('should support camera and photo library permissions', () => {
+      // Check camera permissions are defined
+      expect(mockPermissions.PERMISSIONS.IOS.CAMERA).toBe('ios.permission.CAMERA');
+      expect(mockPermissions.PERMISSIONS.ANDROID.CAMERA).toBe('android.permission.CAMERA');
+      
+      // Check photo library permissions are defined
+      expect(mockPermissions.PERMISSIONS.IOS.PHOTO_LIBRARY).toBe('ios.permission.PHOTO_LIBRARY');
+      expect(mockPermissions.PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).toBe('android.permission.READ_EXTERNAL_STORAGE');
+    });
+
+    it('should support location permissions', () => {
+      // Check location permissions are defined
+      expect(mockPermissions.PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).toBe('ios.permission.LOCATION_WHEN_IN_USE');
+      expect(mockPermissions.PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).toBe('android.permission.ACCESS_FINE_LOCATION');
     });
   });
 });

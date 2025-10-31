@@ -5,6 +5,7 @@
     "module": "esnext",
     "lib": ["esnext"],
     "jsx": "react-native",
+    "jsxImportSource": "react",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true,

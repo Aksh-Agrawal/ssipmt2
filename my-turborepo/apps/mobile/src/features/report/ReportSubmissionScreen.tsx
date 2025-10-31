@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Platform } from 'react-native';
+import { View, StyleSheet, Alert, Platform, Image } from 'react-native';
 import { Title, Button, TextInput, Card, Paragraph, IconButton } from 'react-native-paper';
 import Voice from '@react-native-community/voice';
 import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import Geolocation from 'react-native-geolocation-service';
+
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  timestamp: number;
+}
+
+interface PhotoData {
+  uri: string;
+  fileName?: string;
+  type?: string;
+  fileSize?: number;
+}
 
 const ReportSubmissionScreen: React.FC = () => {
   const [transcription, setTranscription] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | null>(null);
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
 
   useEffect(() => {
     // Initialize voice recognition
@@ -49,6 +67,219 @@ const ReportSubmissionScreen: React.FC = () => {
     }
   };
 
+  const requestCameraPermission = async () => {
+    try {
+      const permission = Platform.OS === 'ios' 
+        ? PERMISSIONS.IOS.CAMERA 
+        : PERMISSIONS.ANDROID.CAMERA;
+
+      const result = await request(permission);
+      
+      if (result === RESULTS.GRANTED) {
+        return true;
+      } else {
+        Alert.alert(
+          'Permission Required',
+          'Camera access is required to take photos. Please enable it in your device settings.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error('Camera permission request error:', error);
+      Alert.alert('Error', 'Failed to request camera permission.');
+      return false;
+    }
+  };
+
+  const requestPhotoLibraryPermission = async () => {
+    try {
+      const permission = Platform.OS === 'ios' 
+        ? PERMISSIONS.IOS.PHOTO_LIBRARY 
+        : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+
+      const result = await request(permission);
+      
+      if (result === RESULTS.GRANTED) {
+        return true;
+      } else {
+        Alert.alert(
+          'Permission Required',
+          'Photo library access is required to select photos. Please enable it in your device settings.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error('Photo library permission request error:', error);
+      Alert.alert('Error', 'Failed to request photo library permission.');
+      return false;
+    }
+  };
+
+  const requestLocationPermission = async () => {
+    try {
+      const permission = Platform.OS === 'ios' 
+        ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE 
+        : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+
+      const result = await request(permission);
+      
+      if (result === RESULTS.GRANTED) {
+        return true;
+      } else {
+        Alert.alert(
+          'Permission Required',
+          'Location access is required to geo-tag your photos. Please enable it in your device settings.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error('Location permission request error:', error);
+      Alert.alert('Error', 'Failed to request location permission.');
+      return false;
+    }
+  };
+
+  const getCurrentLocation = async (): Promise<LocationData | null> => {
+    const hasLocationPermission = await requestLocationPermission();
+    if (!hasLocationPermission) {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          const locationData: LocationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: position.timestamp,
+          };
+          resolve(locationData);
+        },
+        (error) => {
+          console.error('Location error:', error);
+          Alert.alert(
+            'Location Error',
+            'Unable to get your current location. The photo will be attached without location data.'
+          );
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 10000,
+        }
+      );
+    });
+  };
+
+  const handleAttachPhoto = () => {
+    Alert.alert(
+      'Attach Photo',
+      'Choose an option',
+      [
+        {
+          text: 'Camera',
+          onPress: handleTakePhoto,
+        },
+        {
+          text: 'Photo Library',
+          onPress: handleSelectFromLibrary,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const handleTakePhoto = async () => {
+    const hasCameraPermission = await requestCameraPermission();
+    if (!hasCameraPermission) return;
+
+    const options = {
+      mediaType: 'photo' as MediaType,
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+    };
+
+    launchCamera(options, async (response: ImagePickerResponse) => {
+      if (response.didCancel || response.errorMessage) {
+        if (response.errorMessage) {
+          Alert.alert('Error', response.errorMessage);
+        }
+        return;
+      }
+
+      if (response.assets && response.assets[0]) {
+        const asset = response.assets[0];
+        if (asset.uri) {
+          const photoData: PhotoData = {
+            uri: asset.uri,
+            fileName: asset.fileName,
+            type: asset.type,
+            fileSize: asset.fileSize,
+          };
+          
+          setSelectedPhoto(photoData);
+          
+          // Get current location
+          const location = await getCurrentLocation();
+          setLocationData(location);
+        }
+      }
+    });
+  };
+
+  const handleSelectFromLibrary = async () => {
+    const hasLibraryPermission = await requestPhotoLibraryPermission();
+    if (!hasLibraryPermission) return;
+
+    const options = {
+      mediaType: 'photo' as MediaType,
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+    };
+
+    launchImageLibrary(options, async (response: ImagePickerResponse) => {
+      if (response.didCancel || response.errorMessage) {
+        if (response.errorMessage) {
+          Alert.alert('Error', response.errorMessage);
+        }
+        return;
+      }
+
+      if (response.assets && response.assets[0]) {
+        const asset = response.assets[0];
+        if (asset.uri) {
+          const photoData: PhotoData = {
+            uri: asset.uri,
+            fileName: asset.fileName,
+            type: asset.type,
+            fileSize: asset.fileSize,
+          };
+          
+          setSelectedPhoto(photoData);
+          
+          // Get current location
+          const location = await getCurrentLocation();
+          setLocationData(location);
+        }
+      }
+    });
+  };
+
+  const removePhoto = () => {
+    setSelectedPhoto(null);
+    setLocationData(null);
+  };
+
   const onSpeechStart = (e: unknown) => {
     console.log('Speech started:', e);
   };
@@ -87,7 +318,7 @@ const ReportSubmissionScreen: React.FC = () => {
       const newText = e.value[0];
       if (newText) {
         // Append to existing transcription with a space if there's already text
-        setTranscription(prev => prev.length > 0 ? `${prev} ${newText}` : newText);
+        setTranscription((prev: string) => prev.length > 0 ? `${prev} ${newText}` : newText);
       }
     }
   };
@@ -174,6 +405,42 @@ const ReportSubmissionScreen: React.FC = () => {
             </Paragraph>
           </View>
 
+          <View style={styles.photoSection}>
+            <Button
+              mode="outlined"
+              onPress={handleAttachPhoto}
+              icon="camera"
+              style={styles.attachPhotoButton}
+            >
+              Attach Photo
+            </Button>
+
+            {selectedPhoto && (
+              <View style={styles.photoContainer}>
+                <Image source={{ uri: selectedPhoto.uri }} style={styles.photoThumbnail} />
+                <View style={styles.photoInfo}>
+                  <Paragraph style={styles.photoFileName}>
+                    {selectedPhoto.fileName || 'Photo attached'}
+                  </Paragraph>
+                  {locationData && (
+                    <Paragraph style={styles.locationInfo}>
+                      📍 Lat: {locationData.latitude.toFixed(6)}, Lng: {locationData.longitude.toFixed(6)}
+                    </Paragraph>
+                  )}
+                  <Button
+                    mode="text"
+                    onPress={removePhoto}
+                    icon="close"
+                    compact
+                    style={styles.removePhotoButton}
+                  >
+                    Remove
+                  </Button>
+                </View>
+              </View>
+            )}
+          </View>
+
           {transcription.length > 0 && (
             <View style={styles.actionButtons}>
               <Button
@@ -240,6 +507,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  photoSection: {
+    marginBottom: 24,
+  },
+  attachPhotoButton: {
+    marginBottom: 16,
+  },
+  photoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  photoThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  photoInfo: {
+    flex: 1,
+  },
+  photoFileName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 4,
+  },
+  locationInfo: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+  },
+  removePhotoButton: {
+    alignSelf: 'flex-start',
   },
   actionButtons: {
     flexDirection: 'row',
