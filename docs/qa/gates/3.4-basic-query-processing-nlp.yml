@@ -1,0 +1,134 @@
+schema: 1
+story: '3.4'
+story_title: 'Basic Query Processing (NLP)'
+gate: CONCERNS
+status_reason: 'Implementation complete with working code, but has critical coding standard violations (direct process.env access, non-standard error responses) and zero automated test coverage due to pre-existing Jest ESM infrastructure issues.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-11-01T00:00:00Z'
+
+top_issues:
+  - severity: high
+    category: coding_standards
+    description: 'Direct process.env access in nlpService.ts violates Coding Standard 17.1. Must use centralized, validated config object.'
+    refs: ['packages/services/agent/src/nlpService.ts:20']
+    suggested_owner: dev
+    
+  - severity: high
+    category: testing
+    description: 'Zero automated test coverage. No unit or integration tests for NLP service or API endpoint. Jest ESM compatibility issues block test creation.'
+    refs: ['N/A - tests not created']
+    suggested_owner: team
+    
+  - severity: medium
+    category: error_handling
+    description: 'API error responses do not follow standardized ApiErrorResponse format from Error Handling Strategy 18.2.'
+    refs: ['apps/api/src/v1/agent/query.ts:34-36']
+    suggested_owner: dev
+    
+  - severity: medium
+    category: security
+    description: 'API key passed in URL query parameter instead of Authorization header. Could be logged/cached.'
+    refs: ['packages/services/agent/src/nlpService.ts:31']
+    suggested_owner: dev
+    
+  - severity: medium
+    category: reliability
+    description: 'No retry logic, rate limiting, or circuit breaker for external Google Cloud NLP API calls.'
+    refs: ['packages/services/agent/src/nlpService.ts']
+    suggested_owner: dev
+
+waiver:
+  active: false
+
+quality_score: 60
+expires: '2025-11-15T00:00:00Z'
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 5
+  trace:
+    ac_covered: []
+    ac_gaps: [1, 2, 3, 4]
+
+nfr_validation:
+  security:
+    status: CONCERNS
+    notes: 'API key exposure in URL, no rate limiting, no input sanitization. Need security headers and defensive coding.'
+  performance:
+    status: CONCERNS
+    notes: 'No caching of NLP results, no timeout configuration. Will scale poorly under load.'
+  reliability:
+    status: CONCERNS
+    notes: 'No retry logic or circuit breaker. Graceful degradation present but insufficient for production.'
+  maintainability:
+    status: PASS
+    notes: 'Clean code structure, good documentation, proper TypeScript types. Config violation reduces score.'
+
+recommendations:
+  immediate:
+    - action: 'Create centralized config in packages/services/agent/src/config.ts with validated environment variables'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 2
+      
+    - action: 'Update API error responses to use ApiErrorResponse format from shared-types'
+      refs: ['apps/api/src/v1/agent/query.ts']
+      owner: dev
+      effort_hours: 0.5
+      
+    - action: 'Move Google Cloud API key from URL query parameter to Authorization header'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 0.5
+      
+    - action: 'Resolve Jest ESM compatibility or adopt alternative test runner (Vitest). Create ADR for decision.'
+      refs: ['monorepo test infrastructure']
+      owner: team
+      effort_hours: 16
+      
+    - action: 'Add minimum viable tests (unit tests for intent detection and entity extraction)'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 4
+      
+  future:
+    - action: 'Implement retry logic with exponential backoff for Google NLP API'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 3
+      
+    - action: 'Add circuit breaker pattern for external API resilience'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 4
+      
+    - action: 'Implement caching of NLP results in Redis'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 3
+      
+    - action: 'Add request timeout configuration to fetch calls'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 0.25
+      
+    - action: 'Add input sanitization before external API calls'
+      refs: ['packages/services/agent/src/nlpService.ts']
+      owner: dev
+      effort_hours: 1
+
+technical_debt_items:
+  - item: 'Jest ESM compatibility issues block all test creation across monorepo'
+    priority: HIGH
+    impact: 'Cannot write automated tests for any package using ESM'
+    estimated_effort: '2-3 days for investigation and migration'
+    
+  - item: 'No test coverage for external API integrations'
+    priority: HIGH
+    impact: 'Google Cloud NLP integration behavior unvalidated'
+    estimated_effort: '4-6 hours once test infrastructure resolved'
+    
+  - item: 'Lack of API resilience patterns (retry, circuit breaker, rate limiting)'
+    priority: MEDIUM
+    impact: 'External API failures will cascade, no protection from quota exhaustion'
+    estimated_effort: '8-10 hours'
