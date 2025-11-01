@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '../../../lib/supabase/client';
 import type { KnowledgeArticle } from '@repo/shared-types';
 
@@ -105,15 +106,15 @@ export default function KnowledgeArticlesList({ className = '' }: KnowledgeArtic
             Manage the information available to the AI assistant
           </p>
         </div>
-        <button
-          type="button"
+        <Link
+          href="/dashboard/agent-content/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           <svg className="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Create New Article
-        </button>
+        </Link>
       </div>
 
       {articles.length === 0 ? (
@@ -154,12 +155,12 @@ export default function KnowledgeArticlesList({ className = '' }: KnowledgeArtic
                   </div>
                   
                   <div className="flex-shrink-0 flex space-x-2">
-                    <button
-                      type="button"
+                    <Link
+                      href={`/dashboard/agent-content/new?id=${article.id}`}
                       className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
                     >
                       Edit
-                    </button>
+                    </Link>
                     <button
                       type="button"
                       className="text-red-600 hover:text-red-900 text-sm font-medium"
