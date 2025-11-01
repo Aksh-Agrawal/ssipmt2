@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["API_URL", "SUPABASE_URL", "SUPABASE_ANON_KEY", "REDIS_URL", "REDIS_TOKEN", "GOOGLE_MAPS_API_KEY"],
+  "globalEnv": ["API_URL", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "REDIS_URL", "REDIS_TOKEN", "GOOGLE_MAPS_API_KEY", "GOOGLE_CLOUD_API_KEY"],
   "ui": "tui",
   "tasks": {
     "build": {

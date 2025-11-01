@@ -5,6 +5,10 @@ export { getRedisClient, resetRedisClient } from './redisClient.js';
 export { healthCheck } from './healthCheck.js';
 export type { HealthCheckResult } from './healthCheck.js';
 
+// Export NLP service
+export { processQuery } from './nlpService.js';
+export type { NLPResult } from './nlpService.js';
+
 // Export agent service
 export const agentService = {
   async processQuery(query: string): Promise<string> {
