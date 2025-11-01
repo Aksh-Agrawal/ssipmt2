@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, IconButton, Card, Text } from 'react-native-paper';
+import { TextInput, IconButton, Card, Text, ActivityIndicator } from 'react-native-paper';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import { agentService } from '../../services/agentService';
 
 interface ChatMessage {
   id: string;
   text: string;
-  author: 'user' | 'agent';
+  author: 'user' | 'agent' | 'system';
   timestamp: Date;
+  isLoading?: boolean;
 }
 
 const AgentChatScreen: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Default map region (example coordinates - can be customized)
   const defaultRegion = {
@@ -22,24 +25,75 @@ const AgentChatScreen: React.FC = () => {
     longitudeDelta: 0.0421,
   };
 
-  const handleSendMessage = () => {
-    if (inputText.trim() === '') {
+  const handleSendMessage = async () => {
+    if (inputText.trim() === '' || isLoading) {
       return;
     }
 
-    const newMessage: ChatMessage = {
+    const userQuery = inputText.trim();
+    
+    // Add user message to chat
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      text: inputText.trim(),
+      text: userQuery,
       author: 'user',
       timestamp: new Date(),
     };
-
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInputText('');
+    
+    // Add loading indicator
+    const loadingMessage: ChatMessage = {
+      id: `loading-${Date.now()}`,
+      text: '...',
+      author: 'system',
+      timestamp: new Date(),
+      isLoading: true,
+    };
+    setMessages((prevMessages) => [...prevMessages, loadingMessage]);
+    setIsLoading(true);
+
+    try {
+      // Call agent API
+      const agentResponse = await agentService.sendQuery(userQuery);
+      
+      // Remove loading indicator
+      setMessages((prevMessages) => 
+        prevMessages.filter((msg) => !msg.isLoading)
+      );
+      
+      // Add agent response
+      const agentMessage: ChatMessage = {
+        id: `agent-${Date.now()}`,
+        text: agentResponse,
+        author: 'agent',
+        timestamp: new Date(),
+      };
+      setMessages((prevMessages) => [...prevMessages, agentMessage]);
+    } catch (error) {
+      // Remove loading indicator
+      setMessages((prevMessages) => 
+        prevMessages.filter((msg) => !msg.isLoading)
+      );
+      
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        text: 'Sorry, I encountered an error processing your request. Please try again.',
+        author: 'agent',
+        timestamp: new Date(),
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      
+      console.error('Agent query error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isUser = item.author === 'user';
+    const isSystem = item.author === 'system';
 
     return (
       <View
@@ -55,14 +109,21 @@ const AgentChatScreen: React.FC = () => {
           ]}
         >
           <Card.Content>
-            <Text
-              style={[
-                styles.messageText,
-                isUser ? styles.userMessageText : styles.agentMessageText,
-              ]}
-            >
-              {item.text}
-            </Text>
+            {item.isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#666" />
+                <Text style={styles.loadingText}>Agent is typing...</Text>
+              </View>
+            ) : (
+              <Text
+                style={[
+                  styles.messageText,
+                  isUser ? styles.userMessageText : styles.agentMessageText,
+                ]}
+              >
+                {item.text}
+              </Text>
+            )}
           </Card.Content>
         </Card>
       </View>
@@ -121,10 +182,10 @@ const AgentChatScreen: React.FC = () => {
           mode="contained"
           size={24}
           onPress={handleSendMessage}
-          disabled={inputText.trim() === ''}
+          disabled={inputText.trim() === '' || isLoading}
           style={styles.sendButton}
           iconColor="#fff"
-          containerColor={inputText.trim() === '' ? '#ccc' : '#6200ee'}
+          containerColor={inputText.trim() === '' || isLoading ? '#ccc' : '#6200ee'}
         />
       </View>
     </KeyboardAvoidingView>
@@ -205,6 +266,16 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     margin: 0,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
   },
 });
 
