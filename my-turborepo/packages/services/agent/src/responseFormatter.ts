@@ -64,3 +64,28 @@ export function formatNoLocationResponse(): string {
 export function formatUnknownIntentResponse(query: string): string {
   return `I'm not sure how to help with "${query}". I can provide traffic information if you ask about routes or conditions. For example, try asking "How is traffic to the station?"`;
 }
+
+/**
+ * Format knowledge articles into a natural language response
+ * @param articles - Array of ranked knowledge articles
+ * @param query - The original user query
+ * @returns Natural language response with article information
+ */
+export function formatKnowledgeResponse(
+  articles: Array<{ title: string; content: string; matchScore: number }>,
+  query: string
+): string {
+  if (articles.length === 0) {
+    return `I couldn't find any information about "${query}". Please try rephrasing your question or contact the city office directly.`;
+  }
+
+  // Return the most relevant article (first in the ranked list)
+  const topArticle = articles[0]!;
+  
+  if (articles.length === 1) {
+    return `${topArticle.title}\n\n${topArticle.content}`;
+  }
+
+  // If multiple articles found, mention that
+  return `${topArticle.title}\n\n${topArticle.content}\n\n(${articles.length - 1} more related article${articles.length - 1 > 1 ? 's' : ''} available)`;
+}

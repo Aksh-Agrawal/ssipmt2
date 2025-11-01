@@ -8,6 +8,7 @@ export interface NLPResult {
   entities: {
     location?: string;
   };
+  keywords?: string[]; // Extracted keywords/tags for knowledge retrieval
   confidence?: number;
 }
 
@@ -55,10 +56,13 @@ export async function processQuery(text: string): Promise<NLPResult> {
       };
     }
 
-    const entitiesData = await entitiesResponse.json();
+    const entitiesData = await entitiesResponse.json() as GoogleNLPResponse;
 
     // Extract location entities
     const location = extractLocationEntity(entitiesData);
+
+    // Extract keywords/tags from entities (nouns and proper nouns)
+    const keywords = extractKeywords(entitiesData);
 
     // Determine intent based on keywords (simple implementation)
     const intent = determineIntent(text.toLowerCase());
@@ -68,6 +72,7 @@ export async function processQuery(text: string): Promise<NLPResult> {
       entities: {
         ...(location && { location }),
       },
+      keywords,
     };
   } catch (error) {
     console.error('Error processing query with NLP service:', error);
@@ -106,6 +111,36 @@ function extractLocationEntity(nlpResponse: GoogleNLPResponse): string | undefin
 }
 
 /**
+ * Extract keywords (tags) from Google NLP response
+ * Extracts nouns and proper nouns that can be used as search tags
+ */
+function extractKeywords(nlpResponse: GoogleNLPResponse): string[] {
+  if (!nlpResponse.entities || nlpResponse.entities.length === 0) {
+    return [];
+  }
+
+  // Entity types to use as keywords: PERSON, LOCATION, ORGANIZATION, EVENT, WORK_OF_ART, CONSUMER_GOOD, OTHER
+  const relevantTypes = [
+    'PERSON',
+    'LOCATION',
+    'ORGANIZATION',
+    'EVENT',
+    'WORK_OF_ART',
+    'CONSUMER_GOOD',
+    'OTHER',
+  ];
+
+  // Extract entity names from relevant types, normalize to lowercase
+  const keywords = nlpResponse.entities
+    .filter((entity) => relevantTypes.includes(entity.type))
+    .map((entity) => entity.name.toLowerCase().trim())
+    .filter((name) => name.length > 0);
+
+  // Remove duplicates
+  return Array.from(new Set(keywords));
+}
+
+/**
  * Determine user intent based on keywords
  * Simple keyword-based approach for MVP
  */
@@ -123,6 +158,23 @@ function determineIntent(text: string): string {
     'commute',
   ];
 
+  const informationalKeywords = [
+    'what',
+    'when',
+    'where',
+    'who',
+    'how',
+    'tell me',
+    'information',
+    'about',
+    'schedule',
+    'hours',
+    'contact',
+    'phone',
+    'email',
+    'address',
+  ];
+
   // Check if any traffic-related keywords are present
   const hasTrafficKeyword = trafficKeywords.some((keyword) =>
     text.includes(keyword)
@@ -130,6 +182,15 @@ function determineIntent(text: string): string {
 
   if (hasTrafficKeyword) {
     return 'check_traffic';
+  }
+
+  // Check if any informational keywords are present
+  const hasInformationalKeyword = informationalKeywords.some((keyword) =>
+    text.includes(keyword)
+  );
+
+  if (hasInformationalKeyword) {
+    return 'informational_query';
   }
 
   return 'unknown';

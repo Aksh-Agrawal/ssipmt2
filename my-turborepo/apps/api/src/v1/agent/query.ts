@@ -8,6 +8,9 @@ import {
   formatTrafficFallback,
   formatNoLocationResponse,
   formatUnknownIntentResponse,
+  findArticlesByTags,
+  formatKnowledgeResponse,
+  getRedisClient,
 } from '@repo/services-agent';
 
 const agentQuery = new Hono();
@@ -60,6 +63,36 @@ agentQuery.post(
           console.error('Traffic service error:', error);
           return c.json({
             response: formatTrafficFallback(destination),
+          }, 200);
+        }
+      }
+      
+      if (nlpResult.intent === 'informational_query') {
+        try {
+          // Step 3: Extract keywords from NLP result
+          const keywords = nlpResult.keywords || [];
+          
+          if (keywords.length === 0) {
+            // No keywords extracted - return no results
+            return c.json({
+              response: formatKnowledgeResponse([], userQuery),
+            }, 200);
+          }
+          
+          // Step 4: Search knowledge base using extracted keywords
+          const redis = getRedisClient();
+          const articles = await findArticlesByTags(redis, keywords);
+          
+          // Step 5: Format and return response
+          const response = formatKnowledgeResponse(articles, userQuery);
+          
+          return c.json({
+            response,
+          }, 200);
+        } catch (error) {
+          console.error('Knowledge search error:', error);
+          return c.json({
+            response: `I encountered an error while searching for information. Please try again later.`,
           }, 200);
         }
       }

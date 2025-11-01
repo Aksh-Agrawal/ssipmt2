@@ -19,4 +19,9 @@ export {
   formatTrafficFallback,
   formatNoLocationResponse,
   formatUnknownIntentResponse,
+  formatKnowledgeResponse,
 } from './responseFormatter.js';
+
+// Export knowledge search
+export { findArticlesByTags } from './knowledgeSearch.js';
+export type { RankedArticle } from './knowledgeSearch.js';
