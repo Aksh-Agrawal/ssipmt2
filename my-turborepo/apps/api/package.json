@@ -14,6 +14,8 @@
   "dependencies": {
     "@repo/shared-types": "*",
     "@repo/services-reporting": "*",
+    "@repo/services-agent": "*",
+    "@repo/services-knowledge": "*",
     "hono": "^4.6.0",
     "zod": "^3.23.0",
     "@hono/zod-validator": "^0.2.0"

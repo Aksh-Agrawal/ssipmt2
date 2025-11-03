@@ -1,0 +1,20 @@
+{
+  "name": "@repo/services-knowledge",
+  "version": "1.0.0",
+  "description": "Knowledge article repository service for Live DB (Redis)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/shared-types": "*",
+    "@upstash/redis": "^1.35.6"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "^5.0.0"
+  }
+}

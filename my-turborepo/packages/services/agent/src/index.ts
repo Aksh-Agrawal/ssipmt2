@@ -1,13 +1,27 @@
-export const agentService = {
-  async processQuery(query: string): Promise<string> {
-    // Placeholder implementation for AI agent query processing
-    console.log(`Processing query: ${query}`);
-    return `Response to: ${query}`;
-  },
+// Export Redis client utilities
+export { getRedisClient, resetRedisClient } from './redisClient.js';
 
-  async getTrafficInfo(location: string): Promise<string> {
-    // Placeholder implementation for traffic information retrieval
-    console.log(`Getting traffic info for: ${location}`);
-    return `Traffic info for ${location}`;
-  },
-};
+// Export health check
+export { healthCheck } from './healthCheck.js';
+export type { HealthCheckResult } from './healthCheck.js';
+
+// Export NLP service
+export { processQuery } from './nlpService.js';
+export type { NLPResult } from './nlpService.js';
+
+// Export traffic service
+export { getTrafficData } from './trafficService.js';
+export type { TrafficData, TrafficRequest } from './trafficService.js';
+
+// Export response formatter
+export {
+  formatTrafficResponse,
+  formatTrafficFallback,
+  formatNoLocationResponse,
+  formatUnknownIntentResponse,
+  formatKnowledgeResponse,
+} from './responseFormatter.js';
+
+// Export knowledge search
+export { findArticlesByTags } from './knowledgeSearch.js';
+export type { RankedArticle } from './knowledgeSearch.js';

@@ -49,3 +49,12 @@ export interface AdminUser {
   role: 'admin' | 'moderator';
   createdAt: Date;
 }
+
+export interface KnowledgeArticle {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}

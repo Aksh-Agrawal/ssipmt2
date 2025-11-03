@@ -1,6 +1,7 @@
 import { createClient } from '../../lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LogoutButton from './LogoutButton'
+import DashboardNav from './DashboardNav'
 import ReportsList from './ReportsList'
 
 export default async function DashboardPage() {
@@ -33,6 +34,8 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <DashboardNav />
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
