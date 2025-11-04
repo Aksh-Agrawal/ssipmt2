@@ -41,3 +41,21 @@ export {
   reindexAllArticles,
 } from './vectorSearch.js';
 export type { VectorSearchResult } from './vectorSearch.js';
+
+// Export LLM service
+export {
+  generateLLMResponse,
+  isLLMEnabled,
+  getLLMModel,
+  getLLMTemperature,
+  getLLMMaxTokens,
+  resetLLMClient,
+} from './llmService.js';
+export type { LLMResponseOptions, LLMResponse } from './llmService.js';
+
+// Export LLM response formatter
+export {
+  formatKnowledgeResponseWithLLM,
+  formatKnowledgeResponseWithFallback,
+} from './llmResponseFormatter.js';
+export type { Article } from './llmResponseFormatter.js';

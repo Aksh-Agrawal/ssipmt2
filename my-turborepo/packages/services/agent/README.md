@@ -28,10 +28,16 @@ REDIS_TOKEN=your_upstash_redis_rest_token
 # Optional: Vector embeddings for advanced document search
 ENABLE_VECTOR_EMBEDDINGS=true
 OPENAI_API_KEY=your_openai_api_key
+
+# Optional: LLM-powered response generation (Story 6.2)
+ENABLE_LLM_RESPONSES=true              # Feature flag to enable/disable LLM responses
+LLM_MODEL=gpt-3.5-turbo                # Model to use (default: gpt-3.5-turbo)
+LLM_TEMPERATURE=0.4                    # Response creativity (0.0-1.0, default: 0.4)
+LLM_MAX_TOKENS=500                     # Maximum response length (default: 500)
 ```
 
 You can obtain Redis credentials from your [Upstash Console](https://console.upstash.com/).
-For vector embeddings, you'll need an OpenAI API key from [OpenAI](https://platform.openai.com/).
+For vector embeddings and LLM responses, you'll need an OpenAI API key from [OpenAI](https://platform.openai.com/).
 
 ### Installation
 
@@ -122,6 +128,63 @@ console.log(`Indexed ${count} articles`);
 ```
 
 **Feature Flag**: Vector embeddings can be disabled by setting `ENABLE_VECTOR_EMBEDDINGS=false` or omitting the environment variable. This provides a rollback mechanism if issues arise.
+
+### LLM-Powered Response Generation (Story 6.2)
+
+The service integrates with OpenAI's language models to generate natural, context-aware responses based on retrieved documents. This enhances the basic response formatting with more intelligent, conversational answers.
+
+```typescript
+import {
+  formatKnowledgeResponseWithLLM,
+  isLLMEnabled,
+} from '@repo/services-agent';
+
+// Check if LLM responses are enabled
+if (isLLMEnabled()) {
+  console.log('LLM responses are active');
+}
+
+// Format knowledge articles with LLM enhancement
+const articles = [
+  {
+    title: 'Garbage Collection Schedule',
+    content: 'Residential garbage is collected every Monday...',
+    matchScore: 2,
+  },
+  {
+    title: 'Recycling Guidelines',
+    content: 'Please separate recyclables into appropriate bins...',
+    matchScore: 1,
+  },
+];
+
+// Automatically uses LLM if enabled, falls back to basic formatter if disabled
+const response = await formatKnowledgeResponseWithLLM(
+  articles,
+  'When is garbage pickup in my area?'
+);
+
+console.log(response);
+// Example output: "Based on the city's garbage collection schedule, 
+// residential garbage is collected every Monday. Make sure to place 
+// your bins at the curb by 7 AM on collection day."
+```
+
+**Key Features:**
+
+- **Automatic Fallback**: If LLM is disabled or encounters an error, automatically falls back to basic response formatting
+- **Cost/Latency Monitoring**: Logs token usage and response time for each LLM call
+- **Configurable Model**: Choose between different OpenAI models (gpt-3.5-turbo, gpt-4, etc.)
+- **Temperature Control**: Adjust response creativity (lower = more factual, higher = more creative)
+- **Token Limits**: Control maximum response length to manage costs
+
+**Feature Flag**: LLM responses can be disabled by setting `ENABLE_LLM_RESPONSES=false`. The system will continue to work using the basic response formatter. This provides a rollback mechanism if cost, latency, or quality issues arise.
+
+**Cost Considerations:**
+
+- GPT-3.5-turbo: ~$0.002 per 1K tokens (cost-effective for MVP)
+- GPT-4: ~$0.03 per 1K tokens (higher quality, higher cost)
+- Monitor logs for token usage and latency metrics
 
 ## Testing
 
