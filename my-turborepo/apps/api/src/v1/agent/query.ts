@@ -10,8 +10,11 @@ import {
   formatUnknownIntentResponse,
   findArticlesByTags,
   formatKnowledgeResponse,
+  formatKnowledgeResponseWithLLM,
+  isLLMEnabled,
   getRedisClient,
 } from '@repo/services-agent';
+import type { AgentQuerySource } from '@repo/shared-types';
 
 const agentQuery = new Hono();
 
@@ -68,14 +71,20 @@ agentQuery.post(
       }
       
       if (nlpResult.intent === 'informational_query') {
+        const startTime = Date.now();
         try {
           // Step 3: Extract keywords from NLP result
           const keywords = nlpResult.keywords || [];
           
           if (keywords.length === 0) {
             // No keywords extracted - return no results
+            const response = isLLMEnabled()
+              ? await formatKnowledgeResponseWithLLM([], userQuery)
+              : formatKnowledgeResponse([], userQuery);
+            
             return c.json({
-              response: formatKnowledgeResponse([], userQuery),
+              response,
+              sources: undefined,
             }, 200);
           }
           
@@ -83,14 +92,35 @@ agentQuery.post(
           const redis = getRedisClient();
           const articles = await findArticlesByTags(redis, keywords);
           
-          // Step 5: Format and return response
-          const response = formatKnowledgeResponse(articles, userQuery);
+          // Step 5: Format response using LLM if enabled, otherwise use basic formatter
+          let response: string;
+          
+          if (isLLMEnabled()) {
+            // Use LLM-enhanced formatting with automatic fallback
+            response = await formatKnowledgeResponseWithLLM(articles, userQuery);
+          } else {
+            // Use basic formatter
+            response = formatKnowledgeResponse(articles, userQuery);
+          }
+          
+          // Step 6: Build sources array from articles (if any)
+          const sources: AgentQuerySource[] = articles.slice(0, 3).map(article => ({
+            id: article.id,
+            title: article.title,
+            // In the future, this could be a deep link to the article in the app
+            // For now, we don't include a URL since articles are stored in Redis
+          }));
+          
+          const latency = Date.now() - startTime;
+          console.log(`[Agent Query] Informational query processed in ${latency}ms (LLM: ${isLLMEnabled()})`);
           
           return c.json({
             response,
+            sources: sources.length > 0 ? sources : undefined,
           }, 200);
         } catch (error) {
-          console.error('Knowledge search error:', error);
+          const latency = Date.now() - startTime;
+          console.error(`[Agent Query] Knowledge search error after ${latency}ms:`, error);
           return c.json({
             response: `I encountered an error while searching for information. Please try again later.`,
           }, 200);

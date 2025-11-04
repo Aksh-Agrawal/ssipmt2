@@ -58,3 +58,15 @@ export interface KnowledgeArticle {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Agent query response with optional sources
+export interface AgentQuerySource {
+  id: string;
+  title: string;
+  url?: string;
+}
+
+export interface AgentQueryResponse {
+  response: string;
+  sources?: AgentQuerySource[];
+}

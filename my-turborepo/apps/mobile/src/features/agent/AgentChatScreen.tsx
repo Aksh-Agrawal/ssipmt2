@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, IconButton, Card, Text, ActivityIndicator } from 'react-native-paper';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { agentService } from '../../services/agentService';
+import { agentService, AgentQuerySource } from '../../services/agentService';
 
 interface ChatMessage {
   id: string;
@@ -10,6 +10,7 @@ interface ChatMessage {
   author: 'user' | 'agent' | 'system';
   timestamp: Date;
   isLoading?: boolean;
+  sources?: AgentQuerySource[];
 }
 
 const AgentChatScreen: React.FC = () => {
@@ -55,19 +56,20 @@ const AgentChatScreen: React.FC = () => {
 
     try {
       // Call agent API
-      const agentResponse = await agentService.sendQuery(userQuery);
+      const agentResult = await agentService.sendQuery(userQuery);
       
       // Remove loading indicator
       setMessages((prevMessages) => 
         prevMessages.filter((msg) => !msg.isLoading)
       );
       
-      // Add agent response
+      // Add agent response with sources
       const agentMessage: ChatMessage = {
         id: `agent-${Date.now()}`,
-        text: agentResponse,
+        text: agentResult.response,
         author: 'agent',
         timestamp: new Date(),
+        sources: agentResult.sources,
       };
       setMessages((prevMessages) => [...prevMessages, agentMessage]);
     } catch (error) {
@@ -93,7 +95,6 @@ const AgentChatScreen: React.FC = () => {
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isUser = item.author === 'user';
-    const isSystem = item.author === 'system';
 
     return (
       <View
@@ -115,14 +116,27 @@ const AgentChatScreen: React.FC = () => {
                 <Text style={styles.loadingText}>Agent is typing...</Text>
               </View>
             ) : (
-              <Text
-                style={[
-                  styles.messageText,
-                  isUser ? styles.userMessageText : styles.agentMessageText,
-                ]}
-              >
-                {item.text}
-              </Text>
+              <>
+                <Text
+                  style={[
+                    styles.messageText,
+                    isUser ? styles.userMessageText : styles.agentMessageText,
+                  ]}
+                >
+                  {item.text}
+                </Text>
+                {/* Display sources if available */}
+                {!isUser && item.sources && item.sources.length > 0 && (
+                  <View style={styles.sourcesContainer}>
+                    <Text style={styles.sourcesLabel}>Sources:</Text>
+                    {item.sources.map((source) => (
+                      <View key={source.id} style={styles.sourceItem}>
+                        <Text style={styles.sourceText}>• {source.title}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
             )}
           </Card.Content>
         </Card>
@@ -275,6 +289,26 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     color: '#666',
+    fontStyle: 'italic',
+  },
+  sourcesContainer: {
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+  },
+  sourcesLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 4,
+  },
+  sourceItem: {
+    marginVertical: 2,
+  },
+  sourceText: {
+    fontSize: 12,
+    color: '#555',
     fontStyle: 'italic',
   },
 });

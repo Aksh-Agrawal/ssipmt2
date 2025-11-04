@@ -223,4 +223,220 @@ describe('Agent Query - Knowledge Retrieval Integration', () => {
     expect(formatKnowledgeResponse).toHaveBeenCalledWith(mockArticles, 'What are the park hours?');
     expect(data.response).toContain('Park Hours and Information');
   });
+
+  it('should include sources in response when articles are found', async () => {
+    // Mock NLP service
+    (processQuery as jest.MockedFunction<typeof processQuery>).mockResolvedValue({
+      intent: 'informational_query',
+      entities: {},
+      keywords: ['recycling'],
+    });
+
+    // Mock Redis client
+    const mockRedis = {};
+    (getRedisClient as jest.MockedFunction<typeof getRedisClient>).mockReturnValue(mockRedis as any);
+
+    // Mock findArticlesByTags to return articles
+    const mockArticles = [
+      {
+        id: 'article-1',
+        title: 'Recycling Guidelines',
+        content: 'How to recycle properly.',
+        tags: ['recycling'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+      {
+        id: 'article-2',
+        title: 'Recycling Schedule',
+        content: 'Recycling pickup times.',
+        tags: ['recycling'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+    ];
+    (findArticlesByTags as jest.MockedFunction<typeof findArticlesByTags>).mockResolvedValue(mockArticles);
+
+    // Mock formatKnowledgeResponse
+    (formatKnowledgeResponse as jest.MockedFunction<typeof formatKnowledgeResponse>).mockReturnValue(
+      'Recycling information...'
+    );
+
+    // Make request
+    const req = new Request('http://localhost/api/v1/agent/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'Tell me about recycling' }),
+    });
+
+    const res = await agentQuery.request(req);
+    const data = await res.json() as { response: string; sources?: Array<{ id: string; title: string }> };
+
+    // Assertions
+    expect(res.status).toBe(200);
+    expect(data).toHaveProperty('response');
+    expect(data).toHaveProperty('sources');
+    expect(data.sources).toHaveLength(2);
+    expect(data.sources?.[0]).toEqual({
+      id: 'article-1',
+      title: 'Recycling Guidelines',
+    });
+    expect(data.sources?.[1]).toEqual({
+      id: 'article-2',
+      title: 'Recycling Schedule',
+    });
+  });
+
+  it('should limit sources to top 3 articles', async () => {
+    // Mock NLP service
+    (processQuery as jest.MockedFunction<typeof processQuery>).mockResolvedValue({
+      intent: 'informational_query',
+      entities: {},
+      keywords: ['water'],
+    });
+
+    // Mock Redis client
+    const mockRedis = {};
+    (getRedisClient as jest.MockedFunction<typeof getRedisClient>).mockReturnValue(mockRedis as any);
+
+    // Mock findArticlesByTags to return 5 articles
+    const mockArticles = [
+      {
+        id: 'article-1',
+        title: 'Water Conservation',
+        content: 'Save water tips.',
+        tags: ['water'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+      {
+        id: 'article-2',
+        title: 'Water Quality',
+        content: 'Water quality info.',
+        tags: ['water'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+      {
+        id: 'article-3',
+        title: 'Water Billing',
+        content: 'Water billing info.',
+        tags: ['water'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+      {
+        id: 'article-4',
+        title: 'Water Emergency',
+        content: 'Water emergency contacts.',
+        tags: ['water'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+      {
+        id: 'article-5',
+        title: 'Water History',
+        content: 'Water system history.',
+        tags: ['water'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        matchScore: 1,
+      },
+    ];
+    (findArticlesByTags as jest.MockedFunction<typeof findArticlesByTags>).mockResolvedValue(mockArticles);
+
+    // Mock formatKnowledgeResponse
+    (formatKnowledgeResponse as jest.MockedFunction<typeof formatKnowledgeResponse>).mockReturnValue(
+      'Water information...'
+    );
+
+    // Make request
+    const req = new Request('http://localhost/api/v1/agent/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'Tell me about water' }),
+    });
+
+    const res = await agentQuery.request(req);
+    const data = await res.json() as { response: string; sources?: Array<{ id: string; title: string }> };
+
+    // Assertions
+    expect(res.status).toBe(200);
+    expect(data).toHaveProperty('sources');
+    expect(data.sources).toHaveLength(3); // Limited to top 3
+    expect(data.sources?.[0]?.id).toBe('article-1');
+    expect(data.sources?.[1]?.id).toBe('article-2');
+    expect(data.sources?.[2]?.id).toBe('article-3');
+  });
+
+  it('should not include sources field when no articles are found', async () => {
+    // Mock NLP service
+    (processQuery as jest.MockedFunction<typeof processQuery>).mockResolvedValue({
+      intent: 'informational_query',
+      entities: {},
+      keywords: ['unknown'],
+    });
+
+    // Mock Redis client
+    const mockRedis = {};
+    (getRedisClient as jest.MockedFunction<typeof getRedisClient>).mockReturnValue(mockRedis as any);
+
+    // Mock findArticlesByTags to return empty array
+    (findArticlesByTags as jest.MockedFunction<typeof findArticlesByTags>).mockResolvedValue([]);
+
+    // Mock formatKnowledgeResponse
+    (formatKnowledgeResponse as jest.MockedFunction<typeof formatKnowledgeResponse>).mockReturnValue(
+      'No information found.'
+    );
+
+    // Make request
+    const req = new Request('http://localhost/api/v1/agent/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'Tell me about unknown topic' }),
+    });
+
+    const res = await agentQuery.request(req);
+    const data = await res.json() as { response: string; sources?: Array<{ id: string; title: string }> };
+
+    // Assertions
+    expect(res.status).toBe(200);
+    expect(data).toHaveProperty('response');
+    expect(data.sources).toBeUndefined();
+  });
+
+  it('should not include sources field when no keywords are extracted', async () => {
+    // Mock NLP service
+    (processQuery as jest.MockedFunction<typeof processQuery>).mockResolvedValue({
+      intent: 'informational_query',
+      entities: {},
+      keywords: [],
+    });
+
+    // Mock formatKnowledgeResponse
+    (formatKnowledgeResponse as jest.MockedFunction<typeof formatKnowledgeResponse>).mockReturnValue(
+      'Could not understand query.'
+    );
+
+    // Make request
+    const req = new Request('http://localhost/api/v1/agent/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'vague query' }),
+    });
+
+    const res = await agentQuery.request(req);
+    const data = await res.json() as { response: string; sources?: Array<{ id: string; title: string }> };
+
+    // Assertions
+    expect(res.status).toBe(200);
+    expect(data).toHaveProperty('response');
+    expect(data.sources).toBeUndefined();
+  });
 });
