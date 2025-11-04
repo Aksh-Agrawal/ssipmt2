@@ -181,6 +181,15 @@ const AgentChatScreen: React.FC = () => {
 
       {/* Input Area */}
       <View style={styles.inputContainer}>
+        <IconButton
+          icon="microphone" // Using a microphone icon for voice input
+          mode="contained"
+          size={24}
+          onPress={() => console.log('Start Voice Chat')} // Placeholder for voice chat functionality
+          style={styles.voiceButton} // New style for voice button
+          iconColor="#fff"
+          containerColor="#6200ee" // Example color, can be adjusted
+        />
         <TextInput
           mode="outlined"
           placeholder="Type your question..."
@@ -280,6 +289,9 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     margin: 0,
+  },
+  voiceButton: { // New style for the voice chat button
+    marginRight: 8, // Add some margin to separate it from the text input
   },
   loadingContainer: {
     flexDirection: 'row',

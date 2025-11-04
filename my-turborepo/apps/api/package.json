@@ -18,7 +18,8 @@
     "@repo/services-knowledge": "*",
     "hono": "^4.6.0",
     "zod": "^3.23.0",
-    "@hono/zod-validator": "^0.2.0"
+    "@hono/zod-validator": "^0.2.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
