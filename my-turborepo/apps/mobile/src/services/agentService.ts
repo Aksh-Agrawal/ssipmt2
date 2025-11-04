@@ -2,14 +2,26 @@ export interface AgentQueryRequest {
   query: string;
 }
 
+export interface AgentQuerySource {
+  id: string;
+  title: string;
+  url?: string;
+}
+
 export interface AgentQueryResponse {
   response: string;
+  sources?: AgentQuerySource[];
+}
+
+export interface AgentQueryResult {
+  response: string;
+  sources?: AgentQuerySource[];
 }
 
 class AgentService {
   private baseUrl = 'http://localhost:3000'; // Will be configurable in production
 
-  async sendQuery(query: string): Promise<string> {
+  async sendQuery(query: string): Promise<AgentQueryResult> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/agent/query`, {
         method: 'POST',
@@ -25,7 +37,10 @@ class AgentService {
       }
 
       const result: AgentQueryResponse = await response.json();
-      return result.response;
+      return {
+        response: result.response,
+        sources: result.sources,
+      };
     } catch (error) {
       console.error('Agent query failed:', error);
       throw error;

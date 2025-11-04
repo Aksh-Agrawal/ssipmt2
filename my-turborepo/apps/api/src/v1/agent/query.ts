@@ -14,6 +14,7 @@ import {
   isLLMEnabled,
   getRedisClient,
 } from '@repo/services-agent';
+import type { AgentQuerySource } from '@repo/shared-types';
 
 const agentQuery = new Hono();
 
@@ -83,6 +84,7 @@ agentQuery.post(
             
             return c.json({
               response,
+              sources: undefined,
             }, 200);
           }
           
@@ -101,11 +103,20 @@ agentQuery.post(
             response = formatKnowledgeResponse(articles, userQuery);
           }
           
+          // Step 6: Build sources array from articles (if any)
+          const sources: AgentQuerySource[] = articles.slice(0, 3).map(article => ({
+            id: article.id,
+            title: article.title,
+            // In the future, this could be a deep link to the article in the app
+            // For now, we don't include a URL since articles are stored in Redis
+          }));
+          
           const latency = Date.now() - startTime;
           console.log(`[Agent Query] Informational query processed in ${latency}ms (LLM: ${isLLMEnabled()})`);
           
           return c.json({
             response,
+            sources: sources.length > 0 ? sources : undefined,
           }, 200);
         } catch (error) {
           const latency = Date.now() - startTime;
