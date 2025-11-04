@@ -1,0 +1,38 @@
+schema: 1
+story: "9.1"
+story_title: "Voice Session Management with PipeCat & Core Integration"
+gate: "CONCERNS"
+status_reason: "Missing UI and integration tests."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-11-05T12:00:00Z"
+waiver: { active: false }
+top_issues:
+  - id: "TEST-001"
+    severity: medium
+    finding: "Missing UI tests for the voice chat button."
+    suggested_action: "Add UI tests for the voice chat button."
+  - id: "TEST-002"
+    severity: medium
+    finding: "Missing integration tests for the audio processing."
+    suggested_action: "Add integration tests for the audio processing."
+quality_score: 80
+evidence:
+  tests_reviewed: 5
+  risks_identified: 2
+  trace:
+    ac_covered: [2, 3, 5]
+    ac_gaps: [1, 4, 6, 7]
+nfr_validation:
+  security: { status: PASS, notes: "JWT authentication implemented for the WebSocket." }
+  performance: { status: PASS, notes: "Switched to pino logger." }
+  reliability: { status: CONCERNS, notes: "Reconnection logic is not fully tested." }
+  maintainability: { status: CONCERNS, notes: "AgentChatScreen.tsx is getting large." }
+recommendations:
+  immediate:
+    - action: "Add UI tests for the voice chat button."
+      refs: ["my-turborepo/apps/mobile/src/features/agent/AgentChatScreen.test.tsx"]
+    - action: "Add integration tests for the audio processing."
+      refs: ["my-turborepo/apps/api/src/__tests__/voice.test.ts"]
+  future:
+    - action: "Refactor AgentChatScreen.tsx into smaller components."
+      refs: ["my-turborepo/apps/mobile/src/features/agent/AgentChatScreen.tsx"]

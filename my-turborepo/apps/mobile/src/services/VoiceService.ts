@@ -5,6 +5,10 @@ class VoiceService {
   private ws: WebSocket | null = null;
   private isRecording: boolean = false;
   private audioPlayer: AudioPlayer;
+  private websocketBaseUrl: string | null = null; // Store the base URL for reconnection
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
+  private reconnectDelayMs: number = 3000; // 3 seconds
 
   constructor() {
     this.audioPlayer = new AudioPlayer();
@@ -35,7 +39,21 @@ class VoiceService {
     }
   }
 
-  public async startVoiceChat(websocketUrl: string): Promise<boolean> {
+  private async reconnect(): Promise<void> {
+    if (this.reconnectAttempts < this.maxReconnectAttempts && this.websocketBaseUrl) {
+      this.reconnectAttempts++;
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, this.reconnectDelayMs));
+      await this.startVoiceChat(this.websocketBaseUrl);
+    } else {
+      console.warn('Max reconnection attempts reached or no WebSocket URL available. Voice chat stopped.');
+      this.stopVoiceChat(); // Ensure everything is cleaned up
+    }
+  }
+
+  public async startVoiceChat(websocketBaseUrl: string): Promise<boolean> {
+    this.websocketBaseUrl = websocketBaseUrl; // Store the base URL
+
     const hasPermission = await this.requestPermissions();
     if (!hasPermission) {
       console.warn('Microphone permission not granted.');
@@ -47,11 +65,37 @@ class VoiceService {
       return false;
     }
 
+    // --- START: Authentication Token Fetching ---
+    // In a real application, you would fetch the JWT from your authentication service (e.g., Supabase).
+    // For now, we'll use a placeholder.
+    let authToken: string | null = null;
+    try {
+      // Example: Fetch token from Supabase session
+      // const { data: { session } } = await supabase.auth.getSession();
+      // if (session) {
+      //   authToken = session.access_token;
+      // }
+      // Placeholder for demonstration:
+      authToken = 'YOUR_AUTH_TOKEN_HERE'; // Replace with actual token fetching logic
+    } catch (error) {
+      console.error('Failed to get authentication token:', error);
+      return false;
+    }
+
+    if (!authToken) {
+      console.warn('Authentication token not available.');
+      return false;
+    }
+
+    const websocketUrl = `${websocketBaseUrl}?token=${authToken}`;
+    // --- END: Authentication Token Fetching ---
+
     try {
       this.ws = new WebSocket(websocketUrl);
 
       this.ws.onopen = async () => {
         console.log('WebSocket opened.');
+        this.reconnectAttempts = 0; // Reset attempts on successful connection
         // Configure and start recording
         await AudioRecorder.startRecorder({
           path: 'audio.aac', // Temporary file path, might not be needed for streaming
@@ -94,12 +138,18 @@ class VoiceService {
 
       this.ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        this.stopVoiceChat();
+        // Attempt to reconnect on error
+        this.reconnect();
       };
 
       this.ws.onclose = (event) => {
         console.log('WebSocket closed:', event.code, event.reason);
-        this.stopVoiceChat();
+        // Attempt to reconnect on unexpected close
+        if (event.code !== 1000 && this.isRecording) { // 1000 is normal closure
+          this.reconnect();
+        } else {
+          this.stopVoiceChat();
+        }
       };
 
       return true;
@@ -119,9 +169,10 @@ class VoiceService {
       await AudioRecorder.stopRecorder(); // Use stopRecorder
       this.isRecording = false;
       if (this.ws) {
-        this.ws.close();
+        this.ws.close(1000, 'User initiated close'); // Normal closure code
         this.ws = null;
       }
+      this.reconnectAttempts = 0; // Reset attempts
       console.log('Voice chat stopped.');
     } catch (error) {
       console.error('Failed to stop voice chat:', error);
@@ -134,3 +185,4 @@ class VoiceService {
 }
 
 export const voiceService = new VoiceService();
+

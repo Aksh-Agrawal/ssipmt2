@@ -59,3 +59,7 @@ export {
   formatKnowledgeResponseWithFallback,
 } from './llmResponseFormatter.js';
 export type { Article } from './llmResponseFormatter.js';
+
+// Export PipeCat processors (language detection + STT)
+export { processAudioPipeline } from './pipecatProcessors.js';
+

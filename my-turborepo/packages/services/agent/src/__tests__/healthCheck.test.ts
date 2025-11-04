@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { healthCheck } from '../healthCheck.js';
 import { getRedisClient, resetRedisClient } from '../redisClient.js';
 

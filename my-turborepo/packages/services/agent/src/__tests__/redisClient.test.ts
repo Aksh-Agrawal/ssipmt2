@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { getRedisClient, resetRedisClient } from '../redisClient.js';
 import { Redis } from '@upstash/redis';
 

@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'reac
 import { TextInput, IconButton, Card, Text, ActivityIndicator } from 'react-native-paper';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { agentService, AgentQuerySource } from '../../services/agentService';
+import { voiceService } from '../../services/VoiceService'; // Import voiceService
 
 interface ChatMessage {
   id: string;
@@ -17,6 +18,7 @@ const AgentChatScreen: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVoiceChatActive, setIsVoiceChatActive] = useState(false); // New state for voice chat
 
   // Default map region (example coordinates - can be customized)
   const defaultRegion = {
@@ -90,6 +92,19 @@ const AgentChatScreen: React.FC = () => {
       console.error('Agent query error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle voice chat button press
+  const handleVoiceChatPress = async () => {
+    if (isVoiceChatActive) {
+      await voiceService.stopVoiceChat();
+      setIsVoiceChatActive(false);
+    } else {
+      // Placeholder for WebSocket URL - replace with actual API endpoint
+      const websocketUrl = 'ws://localhost:3000/ws/voice'; // This should come from config
+      const started = await voiceService.startVoiceChat(websocketUrl);
+      setIsVoiceChatActive(started);
     }
   };
 
@@ -182,13 +197,14 @@ const AgentChatScreen: React.FC = () => {
       {/* Input Area */}
       <View style={styles.inputContainer}>
         <IconButton
-          icon="microphone" // Using a microphone icon for voice input
+          icon={isVoiceChatActive ? "stop" : "microphone"} // Change icon based on state
+          accessibilityLabel={isVoiceChatActive ? "stop" : "microphone"}
           mode="contained"
           size={24}
-          onPress={() => console.log('Start Voice Chat')} // Placeholder for voice chat functionality
+          onPress={handleVoiceChatPress} // Call the new handler
           style={styles.voiceButton} // New style for voice button
           iconColor="#fff"
-          containerColor="#6200ee" // Example color, can be adjusted
+          containerColor={isVoiceChatActive ? "#ff0000" : "#6200ee"} // Change color based on state
         />
         <TextInput
           mode="outlined"
@@ -199,16 +215,18 @@ const AgentChatScreen: React.FC = () => {
           onSubmitEditing={handleSendMessage}
           returnKeyType="send"
           multiline={false}
+          editable={!isVoiceChatActive} // Disable text input during voice chat
         />
         <IconButton
           icon="send"
+          accessibilityLabel="send"
           mode="contained"
           size={24}
           onPress={handleSendMessage}
-          disabled={inputText.trim() === '' || isLoading}
+          disabled={inputText.trim() === '' || isLoading || isVoiceChatActive} // Disable send during voice chat
           style={styles.sendButton}
           iconColor="#fff"
-          containerColor={inputText.trim() === '' || isLoading ? '#ccc' : '#6200ee'}
+          containerColor={inputText.trim() === '' || isLoading || isVoiceChatActive ? '#ccc' : '#6200ee'}
         />
       </View>
     </KeyboardAvoidingView>
