@@ -25,3 +25,19 @@ export {
 // Export knowledge search
 export { findArticlesByTags } from './knowledgeSearch.js';
 export type { RankedArticle } from './knowledgeSearch.js';
+
+// Export vector embedding
+export {
+  generateEmbedding,
+  cosineSimilarity,
+  isVectorEmbeddingEnabled,
+  resetOpenAIClient,
+} from './vectorEmbedding.js';
+
+// Export vector search
+export {
+  indexArticle,
+  searchArticlesByVector,
+  reindexAllArticles,
+} from './vectorSearch.js';
+export type { VectorSearchResult } from './vectorSearch.js';

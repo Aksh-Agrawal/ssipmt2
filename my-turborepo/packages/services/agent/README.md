@@ -21,11 +21,17 @@ The agent service is responsible for:
 Add the following to your `.env` file:
 
 ```bash
+# Required: Live DB (Redis) connection
 REDIS_URL=your_upstash_redis_rest_url
 REDIS_TOKEN=your_upstash_redis_rest_token
+
+# Optional: Vector embeddings for advanced document search
+ENABLE_VECTOR_EMBEDDINGS=true
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-You can obtain these credentials from your [Upstash Console](https://console.upstash.com/).
+You can obtain Redis credentials from your [Upstash Console](https://console.upstash.com/).
+For vector embeddings, you'll need an OpenAI API key from [OpenAI](https://platform.openai.com/).
 
 ### Installation
 
@@ -58,7 +64,7 @@ Health check functionality that:
 
 ## Usage
 
-### Import the Service
+### Basic Usage
 
 ```typescript
 import { getRedisClient, healthCheck } from '@repo/services-agent';
@@ -72,6 +78,50 @@ const redis = getRedisClient();
 await redis.set('key', 'value');
 const value = await redis.get('key');
 ```
+
+### Vector Embeddings (Advanced)
+
+The service now supports advanced document indexing and retrieval using vector embeddings. This enables semantic search for more relevant results.
+
+```typescript
+import {
+  getRedisClient,
+  indexArticle,
+  searchArticlesByVector,
+  reindexAllArticles,
+} from '@repo/services-agent';
+
+const redis = getRedisClient();
+
+// Index a single article for vector search
+await indexArticle(redis, {
+  id: 'article-1',
+  title: 'Garbage Collection Schedule',
+  content: 'Residential garbage is collected every Monday...',
+  tags: ['garbage', 'schedule'],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
+
+// Search articles using natural language queries
+const results = await searchArticlesByVector(
+  redis,
+  'When does garbage pickup happen?',
+  5,    // limit: top 5 results
+  0.7   // threshold: minimum similarity score
+);
+
+// Results include the article data and similarity score
+results.forEach(result => {
+  console.log(`${result.title} (score: ${result.similarityScore})`);
+});
+
+// Reindex all existing articles
+const count = await reindexAllArticles(redis);
+console.log(`Indexed ${count} articles`);
+```
+
+**Feature Flag**: Vector embeddings can be disabled by setting `ENABLE_VECTOR_EMBEDDINGS=false` or omitting the environment variable. This provides a rollback mechanism if issues arise.
 
 ## Testing
 
