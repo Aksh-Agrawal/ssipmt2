@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { TextInput, IconButton, Card, Text, ActivityIndicator } from 'react-native-paper';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { agentService, AgentQuerySource } from '../../services/agentService';
-import { voiceService } from '../../services/VoiceService'; // Import voiceService
+import { voiceService } from '../../services/VoiceService';
+import { getVoiceWebSocketUrl } from '../../config/env';
 
 interface ChatMessage {
   id: string;
@@ -101,10 +102,21 @@ const AgentChatScreen: React.FC = () => {
       await voiceService.stopVoiceChat();
       setIsVoiceChatActive(false);
     } else {
-      // Placeholder for WebSocket URL - replace with actual API endpoint
-      const websocketUrl = 'ws://localhost:3000/ws/voice'; // This should come from config
+      // Get WebSocket URL from config (uses port 3001 by default)
+      const websocketUrl = getVoiceWebSocketUrl();
+      
+      console.log('Starting voice chat with URL:', websocketUrl);
       const started = await voiceService.startVoiceChat(websocketUrl);
       setIsVoiceChatActive(started);
+      
+      if (!started) {
+        console.error('Failed to start voice chat - check WebSocket connection and permissions');
+        Alert.alert(
+          'Voice Chat Unavailable',
+          'Could not start voice chat. Please check your microphone permissions and internet connection.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
 

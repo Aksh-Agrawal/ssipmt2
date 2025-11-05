@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import AgentChatScreen from '../AgentChatScreen';
-import { agentService } from '../../services/agentService'; // Mock agentService
-import { voiceService } from '../../services/VoiceService'; // Mock voiceService
+import { Alert } from 'react-native';
+import AgentChatScreen from './AgentChatScreen';
+import { agentService } from '../../services/agentService';
+import { voiceService } from '../../services/VoiceService';
 
 // Mock agentService
 jest.mock('../../services/agentService', () => ({
@@ -20,6 +21,15 @@ jest.mock('../../services/VoiceService', () => ({
   },
 }));
 
+// Mock config
+jest.mock('../../config/env', () => ({
+  getVoiceWebSocketUrl: jest.fn(() => 'ws://localhost:3001/ws/voice'),
+  config: {
+    apiUrl: 'http://localhost:3001',
+    websocketUrl: 'ws://localhost:3001',
+  },
+}));
+
 describe('AgentChatScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,6 +40,12 @@ describe('AgentChatScreen', () => {
     expect(getByPlaceholderText('Type your question...')).toBeTruthy();
   });
 
+  it('should render voice toggle button', () => {
+    const { getByLabelText } = render(<AgentChatScreen />);
+    const microphoneButton = getByLabelText('microphone');
+    expect(microphoneButton).toBeTruthy();
+  });
+
   it('should call voiceService.startVoiceChat when microphone button is pressed', async () => {
     const { getByLabelText } = render(<AgentChatScreen />);
     const microphoneButton = getByLabelText('microphone');
@@ -37,7 +53,7 @@ describe('AgentChatScreen', () => {
     fireEvent.press(microphoneButton);
 
     await waitFor(() => {
-      expect(voiceService.startVoiceChat).toHaveBeenCalled();
+      expect(voiceService.startVoiceChat).toHaveBeenCalledWith('ws://localhost:3001/ws/voice');
     });
   });
 
@@ -67,5 +83,66 @@ describe('AgentChatScreen', () => {
       expect(agentService.sendQuery).toHaveBeenCalledWith('Hello');
       expect(getByText('Agent response to: Hello')).toBeTruthy();
     });
+  });
+
+  it('should show Alert when voice chat fails to start', async () => {
+    // Mock Alert.alert
+    const mockAlert = jest.spyOn(Alert, 'alert');
+    
+    // Mock voiceService to return false (connection failed)
+    (voiceService.startVoiceChat as jest.Mock).mockResolvedValueOnce(false);
+
+    const { getByLabelText } = render(<AgentChatScreen />);
+    const microphoneButton = getByLabelText('microphone');
+
+    fireEvent.press(microphoneButton);
+
+    await waitFor(() => {
+      expect(voiceService.startVoiceChat).toHaveBeenCalled();
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Voice Chat Unavailable',
+        'Could not start voice chat. Please check your microphone permissions and internet connection.',
+        [{ text: 'OK' }]
+      );
+    });
+
+    mockAlert.mockRestore();
+  });
+
+  it('should handle voice chat permission denial', async () => {
+    // Mock voiceService to simulate permission denial
+    (voiceService.startVoiceChat as jest.Mock).mockResolvedValueOnce(false);
+
+    const { getByLabelText } = render(<AgentChatScreen />);
+    const microphoneButton = getByLabelText('microphone');
+
+    fireEvent.press(microphoneButton);
+
+    await waitFor(() => {
+      expect(voiceService.startVoiceChat).toHaveBeenCalled();
+      // Voice chat should not be active when permission is denied
+      // Button should still show microphone icon (not stop icon)
+      expect(getByLabelText('microphone')).toBeTruthy();
+    });
+  });
+
+  it('should handle network failure during voice chat', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    // Mock voiceService to fail
+    (voiceService.startVoiceChat as jest.Mock).mockResolvedValueOnce(false);
+
+    const { getByLabelText } = render(<AgentChatScreen />);
+    const microphoneButton = getByLabelText('microphone');
+
+    fireEvent.press(microphoneButton);
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to start voice chat - check WebSocket connection and permissions'
+      );
+    });
+
+    consoleErrorSpy.mockRestore();
   });
 });
