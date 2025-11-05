@@ -33,11 +33,13 @@ npm run dev
 To run the mobile application, navigate to `apps/mobile` and run one of the following commands:
 
 For Android:
+
 ```bash
 npm run android
 ```
 
 For iOS:
+
 ```bash
 npm run ios
 ```
@@ -46,23 +48,29 @@ npm run ios
 
 The web applications (`admin-web`, `docs`, and `web-platform`) are all Next.js applications. You can run them using their respective `dev` scripts.
 
-**Note on Port Conflicts:** By default, both `docs` and `web-platform` are configured to run on port 3001. This will cause a port conflict if you try to run both at the same time. To resolve this, you can run one of them on a different port by using the `--port` flag.
+**Port Assignments:**
 
-**admin-web (Port 3000):**
+- **web-platform**: Port 3000
+- **api**: Port 3001
+- **admin-web**: Port 3002
+- **docs**: Port 3003 (if applicable)
+
+See [PORT_ASSIGNMENTS.md](./PORT_ASSIGNMENTS.md) for complete port allocation details.
+
+**admin-web (Port 3002):**
+
 ```bash
 npm run dev --workspace=admin-web
 ```
 
-**docs (Port 3001):**
+**web-platform (Port 3000):**
+
+```bash
+npm run dev --workspace=web-platform
+```
+
+**docs (Port 3003):**
+
 ```bash
 npm run dev --workspace=docs
 ```
-
-**web-platform (Port 3001):**
-To run `web-platform` on a different port (e.g., 3002) to avoid conflicts with `docs`:
-
-```bash
-npm run dev --workspace=web-platform -- --port 3002
-```
-
-Or you can modify the `dev` script in `apps/web-platform/package.json` to use a different port by default.

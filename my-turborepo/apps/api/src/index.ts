@@ -6,9 +6,9 @@ import adminReportDetail from './v1/admin/reports/[id].js';
 import adminReportStatusUpdate from './v1/admin/reports/[id]/status.js';
 import adminKnowledge from './v1/admin/knowledge.js';
 import agentQuery from './v1/agent/query.js';
-import { createServer } from 'http';
+import { serve } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
-import { jwt, verify } from 'hono/jwt';
+import { verify } from 'hono/jwt';
 import type { JwtVariables } from 'hono/jwt';
 import pino from 'pino'; // Import pino
 import { detectLanguage } from '@repo/services-agent/src/swaramAiService.js';
@@ -32,11 +32,8 @@ const logger = pino({
 // It's crucial to keep this secret secure and load it from environment variables.
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'YOUR_SUPABASE_JWT_SECRET';
 
-// Create a standard HTTP server for Hono
-const server = createServer(app.fetch);
-
 // Setup WebSocket
-const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+const { upgradeWebSocket } = createNodeWebSocket({ app });
 
 // Middleware to extract and verify the JWT from the query parameter for WebSocket connections
 app.use('/ws/voice', async (c, next) => {
@@ -115,9 +112,15 @@ app.route('/api/v1/admin/knowledge', adminKnowledge);
 app.route('/api/v1/agent/query', agentQuery);
 
 // Start server
-const port = process.env.PORT || 3001;
-server.listen(port, () => {
-  logger.info(`API server listening on port ${port}`);
-});
+const port = parseInt(process.env.PORT || '3001');
+serve(
+  {
+    fetch: app.fetch,
+    port,
+  },
+  (info) => {
+    logger.info(`API server listening on port ${info.port}`);
+  }
+);
 
 export default app;

@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.6",
     "@hono/node-ws": "^1.2.0",
     "@hono/zod-validator": "^0.2.0",
     "@repo/services-agent": "*",
