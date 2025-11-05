@@ -8,7 +8,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   // Enable compression
   compress: true,
-  
+
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -21,10 +21,10 @@ const nextConfig = {
       },
     ],
   },
-  
+
   // Enable React strict mode for better error detection
   reactStrictMode: true,
-  
+
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
