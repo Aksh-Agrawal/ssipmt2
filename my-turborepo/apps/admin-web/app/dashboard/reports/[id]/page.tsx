@@ -1,133 +1,151 @@
-'use client'
+'use client';
 
-import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { apiClient } from '../../../../lib/api'
-import { createClient } from '../../../../lib/supabase/client'
-import type { Report, ReportStatus } from '@repo/shared-types'
+import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { apiClient } from '../../../../lib/api';
+import { createClient } from '../../../../lib/supabase/client';
+import type { Report, ReportStatus } from '@repo/shared-types';
 
 // Simple components for this page
-const Button = ({ children, variant = 'default', className = '', ...props }: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  variant = 'default',
+  className = '',
+  ...props
+}: {
+  children: React.ReactNode;
   variant?: 'default' | 'outline';
   className?: string;
   [key: string]: any;
 }) => {
-  const baseClasses = 'px-4 py-2 rounded-md font-medium text-sm transition-colors'
+  const baseClasses = 'px-4 py-2 rounded-md font-medium text-sm transition-colors';
   const variants = {
     default: 'bg-blue-600 text-white hover:bg-blue-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-  }
-  
+    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+  };
+
   return (
     <button className={`${baseClasses} ${variants[variant]} ${className}`} {...props}>
       {children}
     </button>
-  )
-}
+  );
+};
 
 const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => {
-  return (
-    <div className={`bg-white shadow rounded-lg border ${className}`}>
-      {children}
-    </div>
-  )
-}
+  return <div className={`bg-white shadow rounded-lg border ${className}`}>{children}</div>;
+};
 
-const Badge = ({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'destructive' | 'secondary' | 'outline' }) => {
+const Badge = ({
+  children,
+  variant = 'default',
+}: {
+  children: React.ReactNode;
+  variant?: 'default' | 'destructive' | 'secondary' | 'outline';
+}) => {
   const variants = {
     default: 'bg-blue-100 text-blue-800',
     destructive: 'bg-red-100 text-red-800',
     secondary: 'bg-green-100 text-green-800',
-    outline: 'bg-gray-100 text-gray-800'
-  }
-  
+    outline: 'bg-gray-100 text-gray-800',
+  };
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}
+    >
       {children}
     </span>
-  )
-}
+  );
+};
 
 export default function ReportDetailPage() {
-  const params = useParams()
-  const reportId = params.id as string
-  const [report, setReport] = useState<Report | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [statusUpdating, setStatusUpdating] = useState(false)
+  const params = useParams();
+  const reportId = params.id as string;
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   useEffect(() => {
     async function loadReport() {
-      if (!reportId) return
+      if (!reportId) return;
 
       try {
-        setLoading(true)
-        
+        setLoading(true);
+
         // Get auth token from Supabase client
-        const supabase = createClient()
-        const { data: { session }, error: authError } = await supabase.auth.getSession()
-        
+        const supabase = createClient();
+        const {
+          data: { session },
+          error: authError,
+        } = await supabase.auth.getSession();
+
         if (authError) {
-          throw new Error(`Authentication error: ${authError.message}`)
+          throw new Error(`Authentication error: ${authError.message}`);
         }
 
         if (!session?.access_token) {
-          throw new Error('No authentication token available')
+          throw new Error('No authentication token available');
         }
 
-        const reportData = await apiClient.reports.fetchById(session.access_token, reportId)
-        setReport(reportData)
+        const reportData = await apiClient.reports.fetchById(session.access_token, reportId);
+        setReport(reportData);
       } catch (err) {
-        console.error('Failed to fetch report:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load report details')
+        console.error('Failed to fetch report:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load report details');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadReport()
-  }, [reportId])
+    loadReport();
+  }, [reportId]);
 
   const handleStatusChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = event.target.value as ReportStatus
-    
+    const newStatus = event.target.value as ReportStatus;
+
     if (!report || newStatus === report.status) {
-      return // No change needed
+      return; // No change needed
     }
 
     try {
-      setStatusUpdating(true)
-      
+      setStatusUpdating(true);
+
       // Get auth token from Supabase client
-      const supabase = createClient()
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      
+      const supabase = createClient();
+      const {
+        data: { session },
+        error: authError,
+      } = await supabase.auth.getSession();
+
       if (authError) {
-        throw new Error(`Authentication error: ${authError.message}`)
+        throw new Error(`Authentication error: ${authError.message}`);
       }
 
       if (!session?.access_token) {
-        throw new Error('No authentication token available')
+        throw new Error('No authentication token available');
       }
 
       // Update status via API
-      const updatedReport = await apiClient.reports.updateStatus(session.access_token, reportId, newStatus)
-      
+      const updatedReport = await apiClient.reports.updateStatus(
+        session.access_token,
+        reportId,
+        newStatus
+      );
+
       // Update local state immediately for responsive UI
-      setReport(updatedReport)
-      
+      setReport(updatedReport);
     } catch (err) {
-      console.error('Failed to update report status:', err)
+      console.error('Failed to update report status:', err);
       // Revert the dropdown to original value on error
-      event.target.value = report.status
-      setError(err instanceof Error ? err.message : 'Failed to update status')
+      event.target.value = report.status;
+      setError(err instanceof Error ? err.message : 'Failed to update status');
     } finally {
-      setStatusUpdating(false)
+      setStatusUpdating(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -137,7 +155,7 @@ export default function ReportDetailPage() {
           <p className="text-gray-600">Loading report details...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !report) {
@@ -146,35 +164,33 @@ export default function ReportDetailPage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">{error || 'Report not found'}</p>
           <Link href="/dashboard/reports">
-            <Button variant="outline">
-              ← Back to Reports
-            </Button>
+            <Button variant="outline">← Back to Reports</Button>
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   const getPriorityColor = (priority?: string) => {
-    if (priority === 'High') return 'destructive'
-    if (priority === 'Medium') return 'default'
-    return 'secondary'
-  }
+    if (priority === 'High') return 'destructive';
+    if (priority === 'Medium') return 'default';
+    return 'secondary';
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Submitted':
-        return 'default'
+        return 'default';
       case 'In Progress':
-        return 'outline'
+        return 'outline';
       case 'Resolved':
-        return 'secondary'
+        return 'secondary';
       case 'Rejected':
-        return 'destructive'
+        return 'destructive';
       default:
-        return 'outline'
+        return 'outline';
     }
-  }
+  };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -183,8 +199,8 @@ export default function ReportDetailPage() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    })
-  }
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -218,12 +234,10 @@ export default function ReportDetailPage() {
                     {report.priority} Priority
                   </Badge>
                 )}
-                <Badge variant={getStatusColor(report.status)}>
-                  {report.status}
-                </Badge>
+                <Badge variant={getStatusColor(report.status)}>{report.status}</Badge>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               {report.category && (
                 <div>
@@ -268,19 +282,16 @@ export default function ReportDetailPage() {
           {/* Location Map Placeholder */}
           {report.location && (
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                🗺️ Location Map
-              </h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center">🗺️ Location Map</h3>
               <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center border">
                 <div className="text-center">
                   <p className="text-gray-600 mb-2">📍 Map View</p>
                   <p className="text-sm text-gray-500">
-                    Lat: {report.location.latitude.toFixed(6)}<br/>
+                    Lat: {report.location.latitude.toFixed(6)}
+                    <br />
                     Lng: {report.location.longitude.toFixed(6)}
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Interactive map coming soon
-                  </p>
+                  <p className="text-xs text-gray-400 mt-2">Interactive map coming soon</p>
                 </div>
               </div>
             </Card>
@@ -294,7 +305,10 @@ export default function ReportDetailPage() {
             <h3 className="text-lg font-semibold mb-4">Update Status</h3>
             <div className="space-y-3">
               <div>
-                <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="status-select"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Report Status
                 </label>
                 <select
@@ -340,7 +354,7 @@ export default function ReportDetailPage() {
                 <p className="text-sm font-medium text-gray-500">Created</p>
                 <p className="text-sm">{formatDate(report.createdAt)}</p>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-gray-500">Last Updated</p>
                 <p className="text-sm">{formatDate(report.updatedAt)}</p>
@@ -362,5 +376,5 @@ export default function ReportDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
