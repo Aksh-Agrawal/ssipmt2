@@ -1,6 +1,6 @@
 import { processOutgoingAudioPipeline } from '../pipecatProcessors.js';
 
-describe('PipeCat outgoing TTS processors (Swaram -> Criteria TTS)', () => {
+describe('PipeCat outgoing TTS processors (SARVAM -> Criteria TTS)', () => {
   it('should synthesize a buffer for given text and language', async () => {
     const text = 'Hello, this is a test.';
     const result = await processOutgoingAudioPipeline(text, 'en');

@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { detectLanguage } from './swaramAiService.js';
+import { detectLanguage } from './SARVAMAiService.js';
 import { transcribeAudio } from './deepgramSttService.js';
 import { synthesizeAndStream } from './criteriaTtsService.js';
 
@@ -33,7 +33,7 @@ export const processAudioPipeline = async (audioChunk: Buffer) => {
 
 /**
  * Outgoing audio pipeline: given response text and optional preferred language,
- * determine language/voice via Swaram AI (if needed) and synthesize audio via Criteria TTS.
+ * determine language/voice via SARVAM AI (if needed) and synthesize audio via Criteria TTS.
  * Returns a Buffer representing audio bytes. In future this should stream.
  */
 export const processOutgoingAudioPipeline = async (text: string, preferredLanguage?: string) => {

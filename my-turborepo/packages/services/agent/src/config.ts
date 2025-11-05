@@ -5,8 +5,8 @@
 
 export interface AgentConfig {
   DEEPGRAM_API_KEY?: string;
-  SWARAM_AI_API_KEY?: string;
-  CRITERIA_TTS_API_KEY?: string;
+  SARVAM_AI_API_KEY?: string;
+  CARTESIA_API_KEY?: string;
 }
 
 function readEnv(name: string): string | undefined {
@@ -16,8 +16,8 @@ function readEnv(name: string): string | undefined {
 
 export const CONFIG: AgentConfig = {
   DEEPGRAM_API_KEY: readEnv('DEEPGRAM_API_KEY'),
-  SWARAM_AI_API_KEY: readEnv('SWARAM_AI_API_KEY'),
-  CRITERIA_TTS_API_KEY: readEnv('CRITERIA_TTS_API_KEY'),
+  SARVAM_AI_API_KEY: readEnv('SARVAM_AI_API_KEY'),
+  CARTESIA_API_KEY: readEnv('CARTESIA_API_KEY'),
 };
 
 export default CONFIG;

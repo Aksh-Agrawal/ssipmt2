@@ -67,7 +67,7 @@ app.get(
         logger.info(`WebSocket opened for user ${userId}: ${event.type}`);
         ws.send(`Welcome, user ${userId}! Agent received your audio. Processing...`);
       },
-import { detectLanguage } from '@repo/services-agent/src/swaramAiService.js';
+import { detectLanguage } from '@repo/services-agent/src/SARVAMAiService.js';
 import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js';
 
 // ... (rest of the file)

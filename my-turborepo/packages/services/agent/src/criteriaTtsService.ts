@@ -15,9 +15,9 @@ export const synthesizeText = async (
   language = 'en',
   voice?: string
 ): Promise<Buffer> => {
-  if (!CONFIG.CRITERIA_TTS_API_KEY) {
+  if (!CONFIG.CARTESIA_API_KEY) {
     logger.warn(
-      'CRITERIA_TTS_API_KEY not configured (packages/services/agent/src/config.ts). Returning silence placeholder.'
+      'CARTESIA_API_KEY not configured (packages/services/agent/src/config.ts). Returning silence placeholder.'
     );
     // Return empty buffer as placeholder
     return Buffer.from([]);

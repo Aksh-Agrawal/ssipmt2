@@ -1,6 +1,6 @@
-import { detectLanguage } from '../swaramAiService.js';
+import { detectLanguage } from '../SARVAMAiService.js';
 
-describe('Swaram AI Service', () => {
+describe('SARVAM AI Service', () => {
   it('should detect language', async () => {
     const audioChunk = Buffer.from('test');
     const language = await detectLanguage(audioChunk);
