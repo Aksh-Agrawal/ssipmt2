@@ -1,8 +1,11 @@
 'use client'
 
+'use client'
+
 import { useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Box, Typography, TextField, Button, Alert, CircularProgress } from '@mui/material'
 
 /**
  * Login page component for admin authentication.
@@ -82,71 +85,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        padding: 3,
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: 400,
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          padding: 4,
+          boxShadow: 3,
+          borderRadius: 2,
+          backgroundColor: 'white',
+        }}
+      >
+        <Box>
+          <Typography component="h1" variant="h5" align="center" gutterBottom>
             Admin Dashboard
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          </Typography>
+          <Typography variant="body2" align="center" color="text.secondary">
             Sign in to access the admin panel
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-          </div>
+          </Typography>
+        </Box>
+        <Box component="form" onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            required
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            error={!!error && email.trim() !== ''}
+            helperText={error && email.trim() !== '' ? error : ''}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            error={!!error && password.trim() !== ''}
+            helperText={error && password.trim() !== '' ? error : ''}
+          />
 
           {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-md p-3">
+            <Alert severity="error" sx={{ mt: 2 }}>
               {error}
-            </div>
+            </Alert>
           )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={loading}
+            sx={{ mt: 3, mb: 2 }}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   )
 }

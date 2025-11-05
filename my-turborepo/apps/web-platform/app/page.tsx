@@ -1,4 +1,18 @@
-import ChatInterface from './components/ChatInterface';
+import dynamic from 'next/dynamic';
+
+// Dynamically import ChatInterface with loading state
+const ChatInterface = dynamic(() => import('./components/ChatInterface'), {
+  loading: () => (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '400px' 
+    }}>
+      <div>Loading chat interface...</div>
+    </div>
+  ),
+});
 
 export default function Home() {
   return (

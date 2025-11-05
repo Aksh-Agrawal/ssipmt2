@@ -1,8 +1,18 @@
 import { createClient } from '../../../../lib/supabase/server'
 import { redirect } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import LogoutButton from '../../LogoutButton'
 import DashboardNav from '../../DashboardNav'
-import KnowledgeArticleForm from './KnowledgeArticleForm'
+
+// Dynamically import KnowledgeArticleForm to reduce initial bundle size
+const KnowledgeArticleForm = dynamic(() => import('./KnowledgeArticleForm'), {
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <span className="ml-2 text-gray-600">Loading form...</span>
+    </div>
+  ),
+});
 
 export default async function NewArticlePage() {
   const supabase = await createClient()

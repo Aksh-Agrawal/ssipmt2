@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { apiClient } from '../../../../lib/api'
 import { createClient } from '../../../../lib/supabase/client'
 import type { Report, ReportStatus } from '@repo/shared-types'
@@ -250,11 +251,13 @@ export default function ReportDetailPage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {report.photoUrls.map((photoUrl: string, index: number) => (
-                  <div key={index} className="relative">
-                    <img
+                  <div key={index} className="relative h-48">
+                    <Image
                       src={photoUrl}
                       alt={`Report photo ${index + 1}`}
-                      className="w-full h-48 object-cover rounded-lg border"
+                      fill
+                      className="object-cover rounded-lg border"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                 ))}

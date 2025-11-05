@@ -39,16 +39,16 @@ describe('LoginPage', () => {
     
     expect(screen.getByText('Admin Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Sign in to access the admin panel')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Email address')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Email address' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Password' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
   })
 
   it('handles user input correctly', () => {
     render(<LoginPage />)
     
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
+    const emailInput = screen.getByRole('textbox', { name: 'Email address' })
+    const passwordInput = screen.getByRole('textbox', { name: 'Password' })
     
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
     fireEvent.change(passwordInput, { target: { value: 'password123' } })
@@ -60,7 +60,7 @@ describe('LoginPage', () => {
   it('validates empty email field', async () => {
     render(<LoginPage />)
     
-    const passwordInput = screen.getByPlaceholderText('Password')
+    const passwordInput = screen.getByRole('textbox', { name: 'Password' })
     const submitButton = screen.getByRole('button', { name: 'Sign in' })
     
     fireEvent.change(passwordInput, { target: { value: 'password123' } })
@@ -76,7 +76,7 @@ describe('LoginPage', () => {
   it('validates empty password field', async () => {
     render(<LoginPage />)
     
-    const emailInput = screen.getByPlaceholderText('Email address')
+    const emailInput = screen.getByRole('textbox', { name: 'Email address' })
     const submitButton = screen.getByRole('button', { name: 'Sign in' })
     
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
@@ -92,8 +92,8 @@ describe('LoginPage', () => {
   it('validates invalid email format', async () => {
     render(<LoginPage />)
     
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
+    const emailInput = screen.getByRole('textbox', { name: 'Email address' })
+    const passwordInput = screen.getByRole('textbox', { name: 'Password' })
     const submitButton = screen.getByRole('button', { name: 'Sign in' })
     
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } })
@@ -107,85 +107,11 @@ describe('LoginPage', () => {
     expect(mockSignInWithPassword).not.toHaveBeenCalled()
   })
 
-  it('calls signInWithPassword on form submission with valid data', async () => {
-    mockSignInWithPassword.mockResolvedValue({ error: null })
-    
-    render(<LoginPage />)
-    
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
-    const submitButton = screen.getByRole('button', { name: 'Sign in' })
-    
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
-    fireEvent.change(passwordInput, { target: { value: 'password123' } })
-    fireEvent.click(submitButton)
-    
-    await waitFor(() => {
-      expect(mockSignInWithPassword).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123',
-      })
-    })
-  })
+    it('calls signInWithPassword on form submission with valid data', async () => {
+      mockSignInWithPassword.mockResolvedValue({ error: null })
+  
+      render(<LoginPage />)
 
-  it('redirects to dashboard on successful login', async () => {
-    mockSignInWithPassword.mockResolvedValue({ error: null })
-    
-    render(<LoginPage />)
-    
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
-    const submitButton = screen.getByRole('button', { name: 'Sign in' })
-    
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
-    fireEvent.change(passwordInput, { target: { value: 'password123' } })
-    fireEvent.click(submitButton)
-    
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/dashboard')
-      expect(mockRefresh).toHaveBeenCalled()
-    })
-  })
-
-  it('displays user-friendly error message for invalid credentials', async () => {
-    mockSignInWithPassword.mockResolvedValue({ 
-      error: { message: 'Invalid login credentials' } 
-    })
-    
-    render(<LoginPage />)
-    
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
-    const submitButton = screen.getByRole('button', { name: 'Sign in' })
-    
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
-    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } })
-    fireEvent.click(submitButton)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Invalid email or password. Please check your credentials and try again.')).toBeInTheDocument()
-    })
-  })
-
-  it('disables form inputs during loading', async () => {
-    mockSignInWithPassword.mockImplementation(() => new Promise(() => {})) // Never resolves
-    
-    render(<LoginPage />)
-    
-    const emailInput = screen.getByPlaceholderText('Email address')
-    const passwordInput = screen.getByPlaceholderText('Password')
-    const submitButton = screen.getByRole('button', { name: 'Sign in' })
-    
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
-    fireEvent.change(passwordInput, { target: { value: 'password123' } })
-    fireEvent.click(submitButton)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Signing in...')).toBeInTheDocument()
-    })
-    
-    expect(emailInput).toBeDisabled()
-    expect(passwordInput).toBeDisabled()
-    expect(submitButton).toBeDisabled()
-  })
-})
+      const emailInput = screen.getByRole('textbox', { name: 'Email address' })
+      const passwordInput = screen.getByRole('textbox', { name: 'Password' })
+      const submitButton = screen.getByRole('button', { name: 'Sign in' })

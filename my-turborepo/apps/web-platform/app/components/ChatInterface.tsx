@@ -1,7 +1,9 @@
 'use client';
 
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
-import styles from './ChatInterface.module.css';
+import { Box, Typography, TextField, Button, Paper, List, ListItem, ListItemText } from '@mui/material';
 
 interface Message {
   id: string;
@@ -10,12 +12,11 @@ interface Message {
   timestamp: Date;
 }
 
-let messageIdCounter = 0;
-
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageIdCounter = useRef(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,7 +30,7 @@ export default function ChatInterface() {
     if (inputValue.trim() === '') return;
 
     const newMessage: Message = {
-      id: `msg-${++messageIdCounter}`,
+      id: `msg-${++messageIdCounter.current}`,
       text: inputValue,
       sender: 'user',
       timestamp: new Date(),
@@ -41,7 +42,7 @@ export default function ChatInterface() {
     // Simulate bot response (placeholder for future integration)
     setTimeout(() => {
       const botMessage: Message = {
-        id: `msg-${++messageIdCounter}`,
+        id: `msg-${++messageIdCounter.current}`,
         text: 'Thank you for your message. This is a placeholder response.',
         sender: 'bot',
         timestamp: new Date(),
@@ -57,54 +58,78 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className={styles.chatContainer}>
-      <div className={styles.messagesArea} data-testid="messages-area">
+    <Paper
+      sx={{
+        height: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: 3,
+      }}
+    >
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
         {messages.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>Start a conversation by typing a message below.</p>
-          </div>
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              Start a conversation by typing a message below.
+            </Typography>
+          </Box>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`${styles.message} ${
-                message.sender === 'user' ? styles.userMessage : styles.botMessage
-              }`}
-              data-testid={`message-${message.sender}`}
-            >
-              <div className={styles.messageContent}>{message.text}</div>
-              <div className={styles.messageTime}>
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </div>
-            </div>
-          ))
+          <List>
+            {messages.map((message) => (
+              <ListItem
+                key={message.id}
+                sx={{
+                  justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                  px: 0,
+                }}
+              >
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    maxWidth: '70%',
+                    backgroundColor: message.sender === 'user' ? 'primary.light' : 'grey.200',
+                    color: message.sender === 'user' ? 'white' : 'text.primary',
+                  }}
+                >
+                  <ListItemText
+                    primary={message.text}
+                    secondary={message.timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    primaryTypographyProps={{ color: 'inherit' }}
+                    secondaryTypographyProps={{ fontSize: '0.75rem', color: 'inherit' }}
+                  />
+                </Paper>
+              </ListItem>
+            ))}
+          </List>
         )}
         <div ref={messagesEndRef} />
-      </div>
-      <div className={styles.inputArea}>
-        <input
-          type="text"
-          className={styles.messageInput}
+      </Box>
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', gap: 1 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
           placeholder="Type your message..."
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          data-testid="message-input"
           aria-label="Message input"
         />
-        <button
-          className={styles.sendButton}
+        <Button
+          variant="contained"
           onClick={handleSend}
           disabled={inputValue.trim() === ''}
-          data-testid="send-button"
           aria-label="Send message"
         >
           Send
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Paper>
   );
 }

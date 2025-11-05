@@ -12,12 +12,16 @@
     "test": "jest --config=jest.config.cjs"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5",
     "@repo/ui": "*",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.0.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@testing-library/jest-dom": "^6.9.1",
