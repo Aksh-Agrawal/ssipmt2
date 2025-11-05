@@ -1,8 +1,7 @@
 import pino from 'pino';
+import { CONFIG } from './config.js';
 
 const logger = pino();
-
-const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
 
 /**
  * Transcribes an audio chunk using Deepgram STT.
@@ -11,16 +10,16 @@ const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
  * @returns The transcribed text.
  */
 export const transcribeAudio = async (audioChunk: Buffer, language: string): Promise<string> => {
-  if (!DEEPGRAM_API_KEY) {
-    logger.warn('Deepgram API key not configured. Returning empty transcription.');
+  if (!CONFIG.DEEPGRAM_API_KEY) {
+    logger.warn(
+      'Deepgram API key not configured (packages/services/agent/src/config.ts). Returning empty transcription.'
+    );
     return '';
   }
 
-  // This is a placeholder for the actual Deepgram API call.
-  // In a real implementation, you would use the Deepgram SDK or fetch
-  // to send the audio chunk to the Deepgram STT endpoint.
+  // Placeholder for the actual Deepgram API call.
   logger.info(`Transcribing audio with Deepgram in language: ${language}...`);
-  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network latency
+  await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network latency
 
   // Simulate a successful response
   const transcription = 'This is a placeholder transcription.'; // Placeholder

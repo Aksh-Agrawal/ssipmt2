@@ -1,6 +1,7 @@
 import pino from 'pino';
 import { detectLanguage } from './swaramAiService.js';
 import { transcribeAudio } from './deepgramSttService.js';
+import { synthesizeAndStream } from './criteriaTtsService.js';
 
 const logger = pino();
 
@@ -27,5 +28,29 @@ export const processAudioPipeline = async (audioChunk: Buffer) => {
   } catch (err) {
     logger.error({ err }, 'Unexpected error in audio pipeline');
     return { language: 'en', transcription: '' };
+  }
+};
+
+/**
+ * Outgoing audio pipeline: given response text and optional preferred language,
+ * determine language/voice via Swaram AI (if needed) and synthesize audio via Criteria TTS.
+ * Returns a Buffer representing audio bytes. In future this should stream.
+ */
+export const processOutgoingAudioPipeline = async (text: string, preferredLanguage?: string) => {
+  try {
+    // Determine language/voice preference
+    const language = preferredLanguage || 'en';
+
+    // Use synthesize wrapper (currently returns Buffer)
+    const audioBuffer = await synthesizeAndStream(text, language).catch((err) => {
+      // Log and return an empty buffer on failure
+      logger.warn({ err }, 'TTS synthesis failed, returning empty buffer');
+      return Buffer.from([]);
+    });
+
+    return { language, audioBuffer };
+  } catch (err) {
+    logger.error({ err }, 'Unexpected error in outgoing audio pipeline');
+    return { language: preferredLanguage || 'en', audioBuffer: Buffer.from([]) };
   }
 };
