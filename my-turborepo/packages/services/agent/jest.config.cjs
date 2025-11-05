@@ -4,12 +4,12 @@ module.exports = {
   testEnvironment: 'node',
   setupFiles: ['./jest.setup.js'],
   moduleNameMapper: {
-    '(.+)\\.js': '$1'
+    '(.+)\\.js': '$1',
   },
   // Use explicit transform for ts-jest and enable ESM mode for TypeScript
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { useESM: true }]
+    '^.+\\.(ts|tsx)$': ['ts-jest', { useESM: true }],
   },
   // Treat TypeScript files as ESM so imports like '../foo.js' resolve correctly
-  extensionsToTreatAsEsm: ['.ts']
+  extensionsToTreatAsEsm: ['.ts'],
 };

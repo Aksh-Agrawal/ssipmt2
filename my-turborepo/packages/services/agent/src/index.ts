@@ -35,11 +35,7 @@ export {
 } from './vectorEmbedding.js';
 
 // Export vector search
-export {
-  indexArticle,
-  searchArticlesByVector,
-  reindexAllArticles,
-} from './vectorSearch.js';
+export { indexArticle, searchArticlesByVector, reindexAllArticles } from './vectorSearch.js';
 export type { VectorSearchResult } from './vectorSearch.js';
 
 // Export LLM service
@@ -62,4 +58,3 @@ export type { Article } from './llmResponseFormatter.js';
 
 // Export PipeCat processors (language detection + STT)
 export { processAudioPipeline } from './pipecatProcessors.js';
-
