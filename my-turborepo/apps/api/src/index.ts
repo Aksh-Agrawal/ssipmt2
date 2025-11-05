@@ -7,11 +7,11 @@ import adminReportStatusUpdate from './v1/admin/reports/[id]/status.js';
 import adminKnowledge from './v1/admin/knowledge.js';
 import agentQuery from './v1/agent/query.js';
 import { createServer } from 'http';
-import { upgradeWebSocket } from '@hono/node-ws';
+import { createNodeWebSocket } from '@hono/node-ws';
 import { jwt, verify } from 'hono/jwt';
 import type { JwtVariables } from 'hono/jwt';
 import pino from 'pino'; // Import pino
-import { detectLanguage } from '@repo/services-agent/src/SARVAMAiService.js';
+import { detectLanguage } from '@repo/services-agent/src/swaramAiService.js';
 import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js';
 
 type Variables = JwtVariables;
@@ -35,6 +35,9 @@ const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'YOUR_SUPABASE_JW
 // Create a standard HTTP server for Hono
 const server = createServer(app.fetch);
 
+// Setup WebSocket
+const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+
 // Middleware to extract and verify the JWT from the query parameter for WebSocket connections
 app.use('/ws/voice', async (c, next) => {
   const token = c.req.query('token'); // Get token from query parameter
@@ -50,7 +53,7 @@ app.use('/ws/voice', async (c, next) => {
     c.set('jwtPayload', payload);
     await next();
   } catch (e) {
-    logger.error('JWT verification failed for WebSocket connection:', e);
+    logger.error({ error: e }, 'JWT verification failed for WebSocket connection');
     return c.text('Unauthorized: Invalid token', 401);
   }
 });
@@ -70,7 +73,7 @@ app.get(
         ws.send(`Welcome, user ${userId}! Agent received your audio. Processing...`);
       },
 
-// ... (rest of the file)
+      // ... (rest of the file)
 
       onMessage: async (event, ws) => {
         // Handle incoming audio data from the client
@@ -92,7 +95,7 @@ app.get(
         logger.info(`WebSocket closed for user: ${userId}`);
       },
       onError: (event) => {
-        logger.error(`WebSocket error for user ${userId}: ${event.message}`);
+        logger.error({ event }, `WebSocket error for user ${userId}`);
       },
     };
   })
@@ -111,4 +114,10 @@ app.route('/api/v1/admin/reports/:id/status', adminReportStatusUpdate);
 app.route('/api/v1/admin/knowledge', adminKnowledge);
 app.route('/api/v1/agent/query', agentQuery);
 
-export default server;
+// Start server
+const port = process.env.PORT || 3001;
+server.listen(port, () => {
+  logger.info(`API server listening on port ${port}`);
+});
+
+export default app;

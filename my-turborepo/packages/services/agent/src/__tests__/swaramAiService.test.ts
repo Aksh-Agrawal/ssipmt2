@@ -1,4 +1,4 @@
-import { detectLanguage } from '../SARVAMAiService.js';
+import { detectLanguage } from '../swaramAiService.js';
 
 describe('SARVAM AI Service', () => {
   it('should detect language', async () => {

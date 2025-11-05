@@ -17,20 +17,24 @@ export interface ReportingConfig {
  * Validates and creates the reporting service configuration
  */
 function createReportingConfig(): ReportingConfig {
-  const googleCloudApiKey = process.env.GOOGLE_CLOUD_API_KEY;
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const googleCloudApiKey = process.env.GOOGLE_CLOUD_API_KEY || 'placeholder_google_cloud_api_key';
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
+  const supabaseServiceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_service_role_key';
 
-  if (!googleCloudApiKey) {
-    throw new Error('GOOGLE_CLOUD_API_KEY environment variable is required');
+  // Warn if using placeholder values
+  if (googleCloudApiKey.startsWith('placeholder_')) {
+    console.warn('⚠️ Warning: Using placeholder GOOGLE_CLOUD_API_KEY. Some features may not work.');
   }
 
-  if (!supabaseUrl) {
-    throw new Error('SUPABASE_URL environment variable is required');
+  if (supabaseUrl.includes('placeholder')) {
+    console.warn('⚠️ Warning: Using placeholder SUPABASE_URL. Some features may not work.');
   }
 
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required');
+  if (supabaseServiceKey.startsWith('placeholder_')) {
+    console.warn(
+      '⚠️ Warning: Using placeholder SUPABASE_SERVICE_ROLE_KEY. Some features may not work.'
+    );
   }
 
   return {
