@@ -1,14 +1,21 @@
 'use client';
 
-'use client';
-
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, TextField, Button, Paper, List, ListItem, ListItemText } from '@mui/material';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'bot';
+  sender: 'user' | 'agent';
   timestamp: Date;
 }
 
@@ -39,15 +46,15 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue('');
 
-    // Simulate bot response (placeholder for future integration)
+    // Simulate agent response (placeholder for future integration)
     setTimeout(() => {
-      const botMessage: Message = {
+      const agentMessage: Message = {
         id: `msg-${++messageIdCounter.current}`,
-        text: 'Thank you for your message. This is a placeholder response.',
-        sender: 'bot',
+        text: 'This is the Civic Information Agent. How can I help you find civic information today?',
+        sender: 'agent',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev, agentMessage]);
     }, 1000);
   };
 
@@ -68,7 +75,7 @@ export default function ChatInterface() {
         boxShadow: 3,
       }}
     >
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }} data-testid="messages-area">
         {messages.length === 0 ? (
           <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Typography variant="body1" color="text.secondary">
@@ -87,6 +94,7 @@ export default function ChatInterface() {
               >
                 <Paper
                   variant="outlined"
+                  data-testid={`message-${message.sender}`}
                   sx={{
                     p: 1.5,
                     borderRadius: 2,
@@ -120,12 +128,14 @@ export default function ChatInterface() {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
           aria-label="Message input"
+          inputProps={{ 'data-testid': 'message-input' }}
         />
         <Button
           variant="contained"
           onClick={handleSend}
           disabled={inputValue.trim() === ''}
           aria-label="Send message"
+          data-testid="send-button"
         >
           Send
         </Button>

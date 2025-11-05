@@ -11,7 +11,7 @@ const ChatInterface = dynamic(() => import('./components/ChatInterface'), {
         minHeight: '400px',
       }}
     >
-      <div>Loading chat interface...</div>
+      <div>Loading Civic Information Agent...</div>
     </div>
   ),
 });
@@ -21,7 +21,7 @@ export default function Home() {
     <div style={{ padding: '2rem' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>Civic Voice Assistant</h1>
       <p style={{ textAlign: 'center', color: '#666', marginBottom: '2rem' }}>
-        Ask questions about civic information and services
+        Get real-time information about civic services, traffic, and city updates
       </p>
       <ChatInterface />
     </div>

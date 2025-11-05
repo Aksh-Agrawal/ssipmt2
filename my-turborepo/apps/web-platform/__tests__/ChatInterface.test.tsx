@@ -34,9 +34,7 @@ describe('ChatInterface Component', () => {
 
   it('displays empty state message when no messages exist', () => {
     render(<ChatInterface />);
-    expect(
-      screen.getByText(/Start a conversation by typing a message below/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Start a conversation by typing a message below/i)).toBeInTheDocument();
   });
 
   it('disables send button when input is empty', () => {
@@ -96,22 +94,20 @@ describe('ChatInterface Component', () => {
     const input = screen.getByTestId('message-input');
     const sendButton = screen.getByTestId('send-button');
 
-    // Try to send empty message
-    await user.click(sendButton);
+    // Verify send button is disabled when input is empty
+    expect(sendButton).toBeDisabled();
 
     // Empty state should still be visible
-    expect(
-      screen.getByText(/Start a conversation by typing a message below/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Start a conversation by typing a message below/i)).toBeInTheDocument();
 
     // Try to send message with only spaces
     await user.type(input, '   ');
-    await user.click(sendButton);
+
+    // Button should still be disabled
+    expect(sendButton).toBeDisabled();
 
     // Empty state should still be visible
-    expect(
-      screen.getByText(/Start a conversation by typing a message below/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Start a conversation by typing a message below/i)).toBeInTheDocument();
   });
 
   it('displays user messages with correct styling', async () => {
@@ -126,23 +122,23 @@ describe('ChatInterface Component', () => {
     expect(userMessage).toHaveTextContent('User message');
   });
 
-  it('displays bot response after user message', async () => {
+  it('displays agent response after user message', async () => {
     const user = userEvent.setup({ delay: null });
     render(<ChatInterface />);
 
     const input = screen.getByTestId('message-input');
-    await user.type(input, 'Hello bot{Enter}');
+    await user.type(input, 'Hello agent{Enter}');
 
-    // Fast-forward time to trigger bot response
+    // Fast-forward time to trigger agent response
     await act(async () => {
       jest.advanceTimersByTime(1000);
     });
 
     await waitFor(() => {
-      const botMessage = screen.getByTestId('message-bot');
-      expect(botMessage).toBeInTheDocument();
-      expect(botMessage).toHaveTextContent(
-        'Thank you for your message. This is a placeholder response.'
+      const agentMessage = screen.getByTestId('message-agent');
+      expect(agentMessage).toBeInTheDocument();
+      expect(agentMessage).toHaveTextContent(
+        'This is the Civic Information Agent. How can I help you find civic information today?'
       );
     });
   });
