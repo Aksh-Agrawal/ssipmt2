@@ -1,0 +1,28 @@
+schema: 1
+story: "9.3"
+story_title: "Multilingual Text-to-Speech with Criteria TTS & SARVAM AI"
+gate: "CONCERNS"
+status_reason: "Re-review confirms code is clarified, but story remains blocked by Jest ESM issue and pending API credentials. Core functionality is not yet implemented or testable."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-11-05T00:00:00Z"
+waiver: { active: false }
+top_issues:
+  - id: "DEV-001"
+    severity: high
+    finding: "Jest ESM compatibility issue blocks automated test execution across the monorepo, preventing comprehensive testing."
+    suggested_action: "Prioritize resolution of the Jest ESM compatibility issue to enable full test coverage."
+  - id: "FUNC-001"
+    severity: medium
+    finding: "Real Criteria TTS API integration and robust streaming audio delivery mechanism are pending, impacting core functionality."
+    suggested_action: "Complete the integration with the actual Criteria TTS API and implement the full streaming solution."
+  - id: "TEST-002"
+    severity: medium
+    finding: "Comprehensive integration tests for multi-language synthesis are pending."
+    suggested_action: "Develop and execute integration tests once the API integration is complete and the Jest ESM issue is resolved."
+history:
+  - at: "2025-11-05T00:00:00Z"
+    gate: CONCERNS
+    note: "Initial review - story in progress, tests blocked, API not integrated."
+  - at: "2025-11-05T00:00:00Z"
+    gate: CONCERNS
+    note: "Re-review after dev clarification. Blockers remain unchanged."

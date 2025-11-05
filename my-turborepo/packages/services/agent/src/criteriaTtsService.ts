@@ -1,5 +1,6 @@
 import pino from 'pino';
 import { CONFIG } from './config.js';
+import { Readable } from 'stream';
 
 const logger = pino();
 
@@ -17,33 +18,46 @@ export const synthesizeText = async (
 ): Promise<Buffer> => {
   if (!CONFIG.CARTESIA_API_KEY) {
     logger.warn(
-      'CARTESIA_API_KEY not configured (packages/services/agent/src/config.ts). Returning silence placeholder.'
+      'CARTESIA_API_KEY not configured. Returning silence placeholder.'
     );
-    // Return empty buffer as placeholder
     return Buffer.from([]);
   }
 
-  // Placeholder for real API call to Criteria TTS
-  logger.info({ language, voice }, 'Calling Criteria TTS to synthesize text');
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  // TODO: [FUNC-001] Real API Integration
+  // Replace this placeholder with the actual Criteria TTS API call.
+  // The API should return an audio buffer.
+  // Refer to Criteria TTS documentation for details.
+  logger.info({ language, voice }, 'Calling Criteria TTS to synthesize text (placeholder)');
+  await new Promise((resolve) => setTimeout(resolve, 150)); // Simulate network latency
 
-  // Return a fake audio buffer for tests / local execution
-  const fakeAudio = `AUDIO(${language}:${voice || 'default'}): ${text}`;
+  // Return a fake audio buffer for local execution without real API keys
+  const fakeAudio = `FAKE_AUDIO(${language}:${voice || 'default'}): ${text}`;
   return Buffer.from(fakeAudio);
 };
 
 /**
- * Streams synthesized audio to a destination. For now this is a convenience wrapper that returns a Buffer.
- * In production this would return a ReadableStream or use a streaming API.
+ * Streams synthesized audio.
+ * In production this should return a ReadableStream from the TTS provider.
+ * Currently returns a Buffer for placeholder purposes.
  */
 export const synthesizeAndStream = async (
   text: string,
   language = 'en',
   voice?: string
-): Promise<Buffer> => {
-  const audio = await synthesizeText(text, language, voice);
-  // Streaming integration point - left as buffer return for tests
-  return audio;
+): Promise<Readable | Buffer> => {
+  const audioBuffer = await synthesizeText(text, language, voice);
+
+  // TODO: [FUNC-001] Streaming Implementation
+  // When the real TTS API is integrated, this function should be updated
+  // to return a ReadableStream directly from the API response if possible.
+  // For now, we convert the buffer to a stream as a placeholder.
+  const stream = new Readable();
+  stream.push(audioBuffer);
+  stream.push(null); // Signal end of stream
+
+  // In the final implementation, you might return the stream from the API call directly.
+  // For now, we return the buffer-based stream.
+  return stream;
 };
 
 export default { synthesizeText, synthesizeAndStream };

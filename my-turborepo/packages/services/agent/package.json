@@ -15,7 +15,9 @@
   "dependencies": {
     "@repo/shared-types": "*",
     "@upstash/redis": "^1.35.6",
-    "openai": "^4.75.0"
+    "openai": "^4.75.0",
+    "pino": "^8.0.0",
+  "axios": "^1.6.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
