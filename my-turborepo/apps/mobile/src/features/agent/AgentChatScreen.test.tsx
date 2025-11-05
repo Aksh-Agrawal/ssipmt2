@@ -8,7 +8,9 @@ import { voiceService } from '../../services/VoiceService';
 // Mock agentService
 jest.mock('../../services/agentService', () => ({
   agentService: {
-    sendQuery: jest.fn((query) => Promise.resolve({ response: `Agent response to: ${query}`, sources: [] })),
+    sendQuery: jest.fn((query) =>
+      Promise.resolve({ response: `Agent response to: ${query}`, sources: [] })
+    ),
   },
 }));
 
@@ -88,7 +90,7 @@ describe('AgentChatScreen', () => {
   it('should show Alert when voice chat fails to start', async () => {
     // Mock Alert.alert
     const mockAlert = jest.spyOn(Alert, 'alert');
-    
+
     // Mock voiceService to return false (connection failed)
     (voiceService.startVoiceChat as jest.Mock).mockResolvedValueOnce(false);
 
@@ -128,7 +130,7 @@ describe('AgentChatScreen', () => {
 
   it('should handle network failure during voice chat', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    
+
     // Mock voiceService to fail
     (voiceService.startVoiceChat as jest.Mock).mockResolvedValueOnce(false);
 

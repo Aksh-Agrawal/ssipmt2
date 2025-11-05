@@ -35,7 +35,7 @@ const AgentChatScreen: React.FC = () => {
     }
 
     const userQuery = inputText.trim();
-    
+
     // Add user message to chat
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -45,7 +45,7 @@ const AgentChatScreen: React.FC = () => {
     };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInputText('');
-    
+
     // Add loading indicator
     const loadingMessage: ChatMessage = {
       id: `loading-${Date.now()}`,
@@ -60,12 +60,10 @@ const AgentChatScreen: React.FC = () => {
     try {
       // Call agent API
       const agentResult = await agentService.sendQuery(userQuery);
-      
+
       // Remove loading indicator
-      setMessages((prevMessages) => 
-        prevMessages.filter((msg) => !msg.isLoading)
-      );
-      
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isLoading));
+
       // Add agent response with sources
       const agentMessage: ChatMessage = {
         id: `agent-${Date.now()}`,
@@ -77,10 +75,8 @@ const AgentChatScreen: React.FC = () => {
       setMessages((prevMessages) => [...prevMessages, agentMessage]);
     } catch (error) {
       // Remove loading indicator
-      setMessages((prevMessages) => 
-        prevMessages.filter((msg) => !msg.isLoading)
-      );
-      
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isLoading));
+
       // Add error message
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
@@ -89,7 +85,7 @@ const AgentChatScreen: React.FC = () => {
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      
+
       console.error('Agent query error:', error);
     } finally {
       setIsLoading(false);
@@ -104,11 +100,11 @@ const AgentChatScreen: React.FC = () => {
     } else {
       // Get WebSocket URL from config (uses port 3001 by default)
       const websocketUrl = getVoiceWebSocketUrl();
-      
+
       console.log('Starting voice chat with URL:', websocketUrl);
       const started = await voiceService.startVoiceChat(websocketUrl);
       setIsVoiceChatActive(started);
-      
+
       if (!started) {
         console.error('Failed to start voice chat - check WebSocket connection and permissions');
         Alert.alert(
@@ -131,10 +127,7 @@ const AgentChatScreen: React.FC = () => {
         ]}
       >
         <Card
-          style={[
-            styles.messageCard,
-            isUser ? styles.userMessageCard : styles.agentMessageCard,
-          ]}
+          style={[styles.messageCard, isUser ? styles.userMessageCard : styles.agentMessageCard]}
         >
           <Card.Content>
             {item.isLoading ? (
@@ -209,14 +202,14 @@ const AgentChatScreen: React.FC = () => {
       {/* Input Area */}
       <View style={styles.inputContainer}>
         <IconButton
-          icon={isVoiceChatActive ? "stop" : "microphone"} // Change icon based on state
-          accessibilityLabel={isVoiceChatActive ? "stop" : "microphone"}
+          icon={isVoiceChatActive ? 'stop' : 'microphone'} // Change icon based on state
+          accessibilityLabel={isVoiceChatActive ? 'stop' : 'microphone'}
           mode="contained"
           size={24}
           onPress={handleVoiceChatPress} // Call the new handler
           style={styles.voiceButton} // New style for voice button
           iconColor="#fff"
-          containerColor={isVoiceChatActive ? "#ff0000" : "#6200ee"} // Change color based on state
+          containerColor={isVoiceChatActive ? '#ff0000' : '#6200ee'} // Change color based on state
         />
         <TextInput
           mode="outlined"
@@ -238,7 +231,9 @@ const AgentChatScreen: React.FC = () => {
           disabled={inputText.trim() === '' || isLoading || isVoiceChatActive} // Disable send during voice chat
           style={styles.sendButton}
           iconColor="#fff"
-          containerColor={inputText.trim() === '' || isLoading || isVoiceChatActive ? '#ccc' : '#6200ee'}
+          containerColor={
+            inputText.trim() === '' || isLoading || isVoiceChatActive ? '#ccc' : '#6200ee'
+          }
         />
       </View>
     </KeyboardAvoidingView>
@@ -320,7 +315,8 @@ const styles = StyleSheet.create({
   sendButton: {
     margin: 0,
   },
-  voiceButton: { // New style for the voice chat button
+  voiceButton: {
+    // New style for the voice chat button
     marginRight: 8, // Add some margin to separate it from the text input
   },
   loadingContainer: {

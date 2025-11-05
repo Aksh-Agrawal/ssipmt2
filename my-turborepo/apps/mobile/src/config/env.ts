@@ -1,6 +1,6 @@
 /**
  * Environment configuration for the mobile app
- * 
+ *
  * In development, these values default to localhost
  * In production, these should be set via environment variables
  */
@@ -11,7 +11,7 @@ export const config = {
    * Defaults to localhost:3001 for development
    */
   apiUrl: 'http://localhost:3001',
-  
+
   /**
    * WebSocket base URL (derived from API URL)
    */
