@@ -17,13 +17,13 @@ top_issues:
     finding: "Manual testing on device/emulator not yet completed"
     suggested_action: "Run mobile app and verify voice button visibility and WebSocket connection"
     suggested_owner: dev
-  
+
   - id: "UX-001"
     severity: low
     finding: "User-facing error feedback (Alert.alert) commented out instead of implemented"
     suggested_action: "Implement Alert.alert to inform users when voice chat connection fails"
     suggested_owner: dev
-  
+
   - id: "TEST-002"
     severity: low
     finding: "No error scenario tests (network failure, permission denied, auth failure)"
@@ -34,29 +34,29 @@ top_issues:
 quality_score: 75
 
 # Gate decision timeline
-expires: "2025-11-19T00:00:00Z"  # 2 weeks from review
+expires: "2025-11-19T00:00:00Z" # 2 weeks from review
 
 evidence:
   tests_reviewed: 5
   code_files_reviewed: 4
   risks_identified: 3
   trace:
-    ac_covered: [1, 2, 3, 4, 7, 11]  # Functional requirements with code-level verification
-    ac_gaps: [5, 6, 8, 9, 10]  # Integration requirements pending runtime verification
+    ac_covered: [1, 2, 3, 4, 7, 11] # Functional requirements with code-level verification
+    ac_gaps: [5, 6, 8, 9, 10] # Integration requirements pending runtime verification
 
 nfr_validation:
   security:
     status: PASS
     notes: "WebSocket endpoint requires JWT authentication. No new security concerns introduced."
-  
+
   performance:
     status: PASS
     notes: "Config module uses computed getter. WebSocket only connects on user action. No performance regressions."
-  
+
   reliability:
     status: CONCERNS
     notes: "Error handling exists but user feedback not implemented. Manual testing incomplete."
-  
+
   maintainability:
     status: PASS
     notes: "Excellent code organization with centralized config module. Good documentation and test coverage."
@@ -68,7 +68,7 @@ risk_summary:
     medium: 1
     low: 2
   highest:
-    score: 4  # Medium probability (2) × Medium impact (2)
+    score: 4 # Medium probability (2) × Medium impact (2)
     scenario: "Voice chat fails to connect but user receives no feedback"
     mitigation: "Implement Alert.alert for connection failures"
   recommendations:
@@ -79,26 +79,26 @@ risk_summary:
       - "Pre-existing TypeScript errors tracked in Story 11.1"
 
 recommendations:
-  immediate:  # Before marking story "Ready for Done"
+  immediate: # Before marking story "Ready for Done"
     - action: "Run mobile app on emulator/device and verify voice button visibility"
       refs: ["apps/mobile/src/features/agent/AgentChatScreen.tsx"]
-    
+
     - action: "Test WebSocket connection establishes (requires API server on port 3001)"
       refs: ["apps/mobile/src/config/env.ts:26-28"]
-    
+
     - action: "Implement Alert.alert for connection failure user feedback"
       refs: ["apps/mobile/src/features/agent/AgentChatScreen.tsx:112-114"]
-  
-  future:  # Can be addressed in follow-up stories
+
+  future: # Can be addressed in follow-up stories
     - action: "Add error scenario tests (network failures, permission denied)"
       refs: ["apps/mobile/src/features/agent/AgentChatScreen.test.tsx"]
-    
+
     - action: "Make config.apiUrl use EXPO_PUBLIC_API_URL environment variable"
       refs: ["apps/mobile/src/config/env.ts"]
-    
+
     - action: "Update VoiceService.getAuthToken() with actual Supabase session"
       refs: ["apps/mobile/src/services/VoiceService.ts:42-51"]
-    
+
     - action: "Resolve pre-existing React TypeScript errors"
       refs: ["Story 11.1"]
 
@@ -108,7 +108,7 @@ code_quality:
   testing: "Good - Unit tests added for visibility and integration, manual testing pending"
   documentation: "Good - JSDoc comments in config, clear error messages"
   error_handling: "Fair - Logging exists but user-facing feedback missing"
-  
+
 files_modified:
   created:
     - "apps/mobile/src/config/env.ts"
