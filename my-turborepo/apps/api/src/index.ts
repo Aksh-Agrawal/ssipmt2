@@ -11,6 +11,8 @@ import { upgradeWebSocket } from '@hono/node-ws';
 import { jwt, verify } from 'hono/jwt';
 import type { JwtVariables } from 'hono/jwt';
 import pino from 'pino'; // Import pino
+import { detectLanguage } from '@repo/services-agent/src/SARVAMAiService.js';
+import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js';
 
 type Variables = JwtVariables;
 
@@ -67,8 +69,6 @@ app.get(
         logger.info(`WebSocket opened for user ${userId}: ${event.type}`);
         ws.send(`Welcome, user ${userId}! Agent received your audio. Processing...`);
       },
-import { detectLanguage } from '@repo/services-agent/src/SARVAMAiService.js';
-import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js';
 
 // ... (rest of the file)
 

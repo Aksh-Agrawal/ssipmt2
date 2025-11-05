@@ -39,6 +39,18 @@ class VoiceService {
     }
   }
 
+  private async getAuthToken(): Promise<string | null> {
+    // In a real application, you would fetch the JWT from your authentication service (e.g., Supabase).
+    // For now, we'll use a placeholder.
+    // Example: Fetch token from Supabase session
+    // const { data: { session } } = await supabase.auth.getSession();
+    // if (session) {
+    //   return session.access_token;
+    // }
+    // Placeholder for demonstration:
+    return 'YOUR_AUTH_TOKEN_HERE'; // Replace with actual token fetching logic
+  }
+
   private async reconnect(): Promise<void> {
     if (this.reconnectAttempts < this.maxReconnectAttempts && this.websocketBaseUrl) {
       this.reconnectAttempts++;
@@ -66,17 +78,9 @@ class VoiceService {
     }
 
     // --- START: Authentication Token Fetching ---
-    // In a real application, you would fetch the JWT from your authentication service (e.g., Supabase).
-    // For now, we'll use a placeholder.
     let authToken: string | null = null;
     try {
-      // Example: Fetch token from Supabase session
-      // const { data: { session } } = await supabase.auth.getSession();
-      // if (session) {
-      //   authToken = session.access_token;
-      // }
-      // Placeholder for demonstration:
-      authToken = 'YOUR_AUTH_TOKEN_HERE'; // Replace with actual token fetching logic
+      authToken = await this.getAuthToken();
     } catch (error) {
       console.error('Failed to get authentication token:', error);
       return false;
