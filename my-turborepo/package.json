@@ -10,6 +10,8 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.79.0",
+    "@upstash/redis": "^1.35.6",
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
     "typescript": "^5.9.2"
