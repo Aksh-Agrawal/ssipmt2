@@ -104,9 +104,8 @@ export default function ReportPage() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioBlob(audioBlob);
         
-        // TODO: Send to Deepgram STT + SARVAM AI for language detection
-        // For now, simulate transcription
-        await simulateTranscription(audioBlob);
+        // Send to voice API for transcription
+        await transcribeAudio(audioBlob);
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
@@ -129,21 +128,33 @@ export default function ReportPage() {
     }
   };
 
-  // Simulate transcription (TODO: Replace with Deepgram + SARVAM AI)
-  const simulateTranscription = async (blob: Blob) => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const mockTranscriptions = {
-      en: 'There is a pothole on Main Street near the park. It is very deep and dangerous for vehicles.',
-      hi: 'मुख्य सड़क पर पार्क के पास एक गड्ढा है। यह बहुत गहरा और वाहनों के लिए खतरनाक है।',
-      cg: 'मुख्य सड़क म पार्क के करीब एक गड्ढा हे। ई बहुत गहिरा अउ गाड़ी मन बर खतरनाक हे।',
-    };
-    
-    setTranscription(mockTranscriptions[language]);
-    
-    // Auto-categorize (TODO: Use Google Cloud NLP)
-    setCategory('infrastructure');
+  // Transcribe audio using voice API (Deepgram STT)
+  const transcribeAudio = async (blob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', blob, 'recording.webm');
+      formData.append('language', language);
+
+      const response = await fetch('/api/voice', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Transcription failed');
+      }
+
+      const result = await response.json();
+      setTranscription(result.transcription);
+      
+      // Show if using mock data
+      if (result.mock) {
+        console.log('Using mock transcription (Deepgram API key not configured)');
+      }
+    } catch (err) {
+      console.error('Transcription error:', err);
+      setError('Failed to transcribe audio. Please try typing instead.');
+    }
   };
 
   // Handle photo upload

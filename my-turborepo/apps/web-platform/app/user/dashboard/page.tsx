@@ -208,6 +208,73 @@ export default function UserDashboard() {
           </Paper>
         </Box>
 
+        {/* NEW: Real-Time Voice Assistant */}
+        <Paper
+          elevation={3}
+          sx={{
+            mb: 4,
+            p: 4,
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            color: 'white',
+            borderRadius: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: 1, minWidth: '250px' }}>
+              <Chip 
+                label="🆕 NEW FEATURE" 
+                size="small" 
+                sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', mb: 1, fontWeight: 700 }}
+              />
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                🎙️ Real-Time Voice Conversation
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Have a natural, hands-free conversation with AI! Powered by Pipecat - speak and get instant voice responses.
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                <Chip 
+                  label="🎤 Continuous Listening" 
+                  size="small" 
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                />
+                <Chip 
+                  label="🔊 Instant TTS" 
+                  size="small" 
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                />
+                <Chip 
+                  label="🗣️ Multilingual" 
+                  size="small" 
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                />
+              </Box>
+            </Box>
+            <Button
+              component={Link}
+              href="/user/voice-assistant"
+              variant="contained"
+              size="large"
+              startIcon={<Chat />}
+              sx={{
+                bgcolor: 'white',
+                color: '#f5576c',
+                fontWeight: 700,
+                px: 4,
+                py: 2,
+                fontSize: '1.1rem',
+                '&:hover': {
+                  bgcolor: '#f0f0f0',
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.2s',
+              }}
+            >
+              Try Voice Chat
+            </Button>
+          </Box>
+        </Paper>
+
         {/* Stats */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2, mb: 4 }}>
           <Card elevation={2}>

@@ -32,6 +32,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  audioData?: string; // Base64 audio for TTS responses
 }
 
 export default function HelpPage() {
@@ -50,6 +51,7 @@ export default function HelpPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   // Language labels
   const languageLabels = {
@@ -80,12 +82,13 @@ export default function HelpPage() {
     setIsLoading(true);
 
     try {
-      // Call real Groq API
-      const response = await fetch('/api/chat', {
+      // Call Gemini AI API
+      const response = await fetch('/api/gemini-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
+          message: messageText,
+          conversationHistory: messages.slice(1).map(m => ({
             role: m.role,
             content: m.content,
           })),
@@ -95,11 +98,11 @@ export default function HelpPage() {
 
       const result = await response.json();
       
-      if (result.success && result.data?.message) {
+      if (result.success && result.response) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: result.data.message,
+          content: result.response,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, assistantMessage]);
@@ -138,8 +141,8 @@ export default function HelpPage() {
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        // TODO: Send to Deepgram STT and then to Groq
-        await sendMessage('[Voice message - transcription pending]');
+        // Send to voice chat API (Deepgram STT + Groq LLM)
+        await processVoiceMessage(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -155,6 +158,85 @@ export default function HelpPage() {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+    }
+  };
+
+  // Play TTS audio
+  const playAudio = (audioBase64: string) => {
+    try {
+      // Convert base64 to audio URL
+      const audioUrl = `data:audio/mp3;base64,${audioBase64}`;
+      
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.src = audioUrl;
+        audioPlayerRef.current.play().catch(err => {
+          console.error('Audio playback error:', err);
+        });
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
+  };
+
+  // Process voice message through API
+  const processVoiceMessage = async (audioBlob: Blob) => {
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice-message.webm');
+      formData.append('language', language);
+
+      const response = await fetch('/api/voice-chat', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Voice processing failed');
+      }
+
+      const result = await response.json();
+
+      // Add user message (transcription)
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: result.transcription,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+
+      // Add assistant response
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: result.response,
+        timestamp: new Date(),
+        audioData: result.audioResponse, // Store base64 audio
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Auto-play TTS audio if available
+      if (result.audioResponse) {
+        playAudio(result.audioResponse);
+      }
+
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: language === 'hi' 
+          ? 'क्षमा करें, मुझे वॉइस संदेश को प्रोसेस करने में त्रुटि हुई।'
+          : language === 'cg'
+          ? 'माफ करव, मोला वॉइस संदेश ल प्रोसेस करे म त्रुटि होइस।'
+          : 'Sorry, I had trouble processing your voice message. Please try typing instead.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -269,6 +351,32 @@ export default function HelpPage() {
                   <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                     {message.content}
                   </Typography>
+                  
+                  {/* Show audio player for TTS responses */}
+                  {message.role === 'assistant' && message.audioData && (
+                    <Box sx={{ mt: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => playAudio(message.audioData!)}
+                        sx={{ 
+                          color: 'primary.main',
+                          opacity: 0.8,
+                        }}
+                      >
+                        <Mic fontSize="small" />
+                      </IconButton>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          ml: 1,
+                          opacity: 0.7,
+                        }}
+                      >
+                        Click to replay
+                      </Typography>
+                    </Box>
+                  )}
+                  
                   <Typography 
                     variant="caption" 
                     sx={{ 
@@ -360,6 +468,9 @@ export default function HelpPage() {
             />
           </Box>
         </Paper>
+
+        {/* Hidden audio player for TTS */}
+        <audio ref={audioPlayerRef} style={{ display: 'none' }} />
       </Box>
     </Container>
   );

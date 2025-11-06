@@ -5,19 +5,17 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/webhooks(.*)',
+  '/api/(.*)', // Allow all API routes without authentication
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
+    const url = new URL(request.url);
     await auth.protect({
-      unauthenticatedUrl: '/sign-in',
-      unauthorizedUrl: '/',
+      unauthenticatedUrl: `${url.origin}/sign-in`,
+      unauthorizedUrl: `${url.origin}/`,
     });
   }
-}, {
-  afterSignInUrl: '/user/dashboard',
-  afterSignUpUrl: '/user/dashboard',
 });
 
 export const config = {
