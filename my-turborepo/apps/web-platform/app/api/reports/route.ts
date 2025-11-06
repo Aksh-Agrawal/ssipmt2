@@ -1,0 +1,210 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { auth } from '@clerk/nextjs/server';
+import { categorizeReport } from '../../lib/ai-categorization';
+
+// GET /api/reports - List reports with filters
+export async function GET(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const status = searchParams.get('status');
+    const category = searchParams.get('category');
+    const priority = searchParams.get('priority');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Build query
+    let query = supabaseAdmin
+      .from('reports')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Apply filters
+    if (status) query = query.eq('status', status);
+    if (category) query = query.eq('category', category);
+    if (priority) query = query.eq('priority', priority);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data,
+      total: count,
+      limit,
+      offset,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST /api/reports - Create a new report
+export async function POST(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const {
+      description,
+      category: userCategory,
+      priority: userPriority,
+      location, // { lat, lng }
+      address,
+      area,
+      landmark,
+      photos = [],
+      input_method = 'text',
+      input_language = 'en',
+      voice_transcription,
+      use_ai_categorization = true, // Enable AI by default
+    } = body;
+
+    // Validate required fields
+    if (!description || !location) {
+      return NextResponse.json(
+        { error: 'Missing required fields: description, location' },
+        { status: 400 }
+      );
+    }
+
+    // AI-powered categorization if enabled and category not provided
+    let category = userCategory;
+    let priority = userPriority || 'Medium';
+    let aiMetadata: any = null;
+
+    if (use_ai_categorization && (!userCategory || !userPriority)) {
+      try {
+        const aiResult = await categorizeReport({
+          description,
+          location: address,
+          area,
+          language: input_language,
+        });
+
+        // Use AI suggestions if user didn't provide category/priority
+        if (!userCategory) category = aiResult.category;
+        if (!userPriority) priority = aiResult.priority;
+
+        aiMetadata = {
+          ai_category: aiResult.category,
+          ai_priority: aiResult.priority,
+          ai_confidence: aiResult.confidence,
+          ai_reasoning: aiResult.reasoning,
+        };
+      } catch (error) {
+        console.error('AI categorization failed, using defaults:', error);
+        // Fallback to defaults if AI fails
+        if (!category) category = 'Others';
+        if (!priority) priority = 'Medium';
+      }
+    }
+
+    // Final fallback if still no category
+    if (!category) category = 'Others';
+
+    // Get or create user in database
+    const { data: userData } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    let citizenId = userData?.id;
+
+    // If user doesn't exist, create them
+    if (!citizenId) {
+      const { data: newUser, error: userError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          clerk_id: userId,
+          email: body.userEmail || 'user@example.com',
+          name: body.userName || 'User',
+          role: 'citizen',
+        })
+        .select('id')
+        .single();
+
+      if (userError) {
+        return NextResponse.json({ error: userError.message }, { status: 500 });
+      }
+
+      citizenId = newUser.id;
+    }
+
+    // Convert location to PostGIS format
+    const locationGeog = `POINT(${location.lng} ${location.lat})`;
+
+    // Calculate SLA deadline based on priority
+    const slaHoursMap: Record<string, number> = {
+      Critical: 2,
+      High: 6,
+      Medium: 24,
+      Low: 72,
+    };
+    const slaHours = slaHoursMap[priority] || 24;
+
+    const slaDeadline = new Date();
+    slaDeadline.setHours(slaDeadline.getHours() + slaHours);
+
+    // Insert report with AI metadata
+    const { data: report, error: reportError } = await supabaseAdmin
+      .from('reports')
+      .insert({
+        description,
+        category,
+        priority,
+        status: 'Submitted',
+        location: locationGeog,
+        address,
+        area,
+        landmark,
+        photos,
+        input_method,
+        input_language,
+        voice_transcription,
+        citizen_id: citizenId,
+        sla_deadline: slaDeadline.toISOString(),
+        metadata: aiMetadata || {}, // Store AI categorization metadata
+        // unique_id will be auto-generated by trigger
+      })
+      .select()
+      .single();
+
+    if (reportError) {
+      return NextResponse.json({ error: reportError.message }, { status: 500 });
+    }
+
+    // Create timeline entry
+    await supabaseAdmin.from('report_timeline').insert({
+      report_id: report.id,
+      action: 'Report Created',
+      description: 'Report submitted by citizen',
+      performed_by: citizenId,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: report,
+      message: 'Report created successfully',
+      ai_metadata: aiMetadata, // Include AI insights in response
+    }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

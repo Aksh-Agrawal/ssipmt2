@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { detectLanguage } from './swaramAiService.js';
+import { detectLanguage } from './sarvamAiService.js';
 import { transcribeAudio } from './deepgramSttService.js';
 import { synthesizeAndStream } from './criteriaTtsService.js';
 
