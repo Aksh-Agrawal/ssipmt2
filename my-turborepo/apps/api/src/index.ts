@@ -7,12 +7,12 @@ import adminReportStatusUpdate from './v1/admin/reports/[id]/status.js';
 import adminKnowledge from './v1/admin/knowledge.js';
 import agentQuery from './v1/agent/query.js';
 import { serve } from '@hono/node-server';
-import { createNodeWebSocket } from '@hono/node-ws';
-import { verify } from 'hono/jwt';
+// import { createNodeWebSocket } from '@hono/node-ws'; // TEMPORARILY DISABLED
+// import { verify } from 'hono/jwt'; // TEMPORARILY DISABLED
 import type { JwtVariables } from 'hono/jwt';
 import pino from 'pino'; // Import pino
-import { detectLanguage } from '@repo/services-agent/src/swaramAiService.js';
-import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js';
+// import { detectLanguage } from '@repo/services-agent/src/swaramAiService.js'; // TEMPORARILY DISABLED
+// import { transcribeAudio } from '@repo/services-agent/src/deepgramSttService.js'; // TEMPORARILY DISABLED
 
 type Variables = JwtVariables;
 
@@ -32,10 +32,12 @@ const logger = pino({
 // It's crucial to keep this secret secure and load it from environment variables.
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'YOUR_SUPABASE_JWT_SECRET';
 
-// Setup WebSocket
-const { upgradeWebSocket } = createNodeWebSocket({ app });
+// Setup WebSocket - TEMPORARILY DISABLED for debugging
+// const { upgradeWebSocket } = createNodeWebSocket({ app });
 
 // Middleware to extract and verify the JWT from the query parameter for WebSocket connections
+// TEMPORARILY DISABLED - Uncomment when WebSocket is needed
+/*
 app.use('/ws/voice', async (c, next) => {
   const token = c.req.query('token'); // Get token from query parameter
 
@@ -97,6 +99,10 @@ app.get(
     };
   })
 );
+*/
+
+// Placeholder for WebSocket - will be re-enabled once debugging is complete
+logger.info('WebSocket endpoints temporarily disabled for debugging');
 
 app.get('/health', (c) => {
   return c.json({ status: 'ok', service: 'api' });
@@ -111,16 +117,45 @@ app.route('/api/v1/admin/reports/:id/status', adminReportStatusUpdate);
 app.route('/api/v1/admin/knowledge', adminKnowledge);
 app.route('/api/v1/agent/query', agentQuery);
 
-// Start server
+// Start server with error handling
 const port = parseInt(process.env.PORT || '3001');
-serve(
-  {
-    fetch: app.fetch,
-    port,
-  },
-  (info) => {
-    logger.info(`API server listening on port ${info.port}`);
-  }
-);
+
+try {
+  const server = serve(
+    {
+      fetch: app.fetch,
+      port,
+    },
+    (info) => {
+      logger.info(`API server listening on port ${info.port}`);
+    }
+  );
+
+  // Handle process termination gracefully
+  process.on('SIGINT', () => {
+    logger.info('Received SIGINT, shutting down gracefully...');
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    logger.info('Received SIGTERM, shutting down gracefully...');
+    process.exit(0);
+  });
+
+  // Catch unhandled promise rejections
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error({ reason, promise }, 'Unhandled Rejection at Promise');
+  });
+
+  // Catch uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    logger.error({ error }, 'Uncaught Exception thrown');
+    process.exit(1);
+  });
+
+} catch (error) {
+  logger.error({ error }, 'Failed to start server');
+  process.exit(1);
+}
 
 export default app;
