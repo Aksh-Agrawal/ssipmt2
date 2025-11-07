@@ -12,10 +12,16 @@
     "test": "jest --config=jest.config.cjs"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.34.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@google/generative-ai": "^0.24.1",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/lab": "^7.0.1-beta.19",
     "@mui/material": "^7.3.5",
     "@repo/ui": "*",
+    "@supabase/supabase-js": "^2.80.0",
+    "groq-sdk": "^0.34.0",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

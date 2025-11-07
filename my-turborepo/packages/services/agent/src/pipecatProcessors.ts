@@ -13,13 +13,13 @@ const logger = pino();
 export const processAudioPipeline = async (audioChunk: Buffer) => {
   try {
     // Step 1: detect language (best-effort)
-    const language = await detectLanguage(audioChunk).catch((err) => {
+    const language = await detectLanguage(audioChunk).catch((err: Error) => {
       logger.warn({ err }, 'Language detection failed, falling back to en');
       return 'en';
     });
 
     // Step 2: transcribe using detected language
-    const transcription = await transcribeAudio(audioChunk, language).catch((err) => {
+    const transcription = await transcribeAudio(audioChunk, language).catch((err: Error) => {
       logger.warn({ err }, 'Transcription failed, returning empty string');
       return '';
     });
@@ -42,7 +42,7 @@ export const processOutgoingAudioPipeline = async (text: string, preferredLangua
     const language = preferredLanguage || 'en';
 
     // Use synthesize wrapper (currently returns Buffer)
-    const audioBuffer = await synthesizeAndStream(text, language).catch((err) => {
+    const audioBuffer = await synthesizeAndStream(text, language).catch((err: Error) => {
       // Log and return an empty buffer on failure
       logger.warn({ err }, 'TTS synthesis failed, returning empty buffer');
       return Buffer.from([]);
