@@ -1,0 +1,46 @@
+'use client';
+
+import React from 'react';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from '@mui/material';
+import { Language as LanguageIcon } from '@mui/icons-material';
+import { useLanguage } from '../lib/LanguageContext';
+
+const languageNames = {
+  en: 'English',
+  hi: 'हिंदी (Hindi)',
+  cg: 'छत्तीसगढ़ी (Chhattisgarhi)',
+};
+
+export default function LanguageSelector() {
+  const { locale, setLocale } = useLanguage();
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setLocale(event.target.value as 'en' | 'hi' | 'cg');
+  };
+
+  return (
+    <FormControl fullWidth>
+      <InputLabel id="language-select-label">
+        <LanguageIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+        Language / भाषा
+      </InputLabel>
+      <Select
+        labelId="language-select-label"
+        id="language-select"
+        value={locale}
+        label="Language / भाषा"
+        onChange={handleChange}
+      >
+        <MenuItem value="en">{languageNames.en}</MenuItem>
+        <MenuItem value="hi">{languageNames.hi}</MenuItem>
+        <MenuItem value="cg">{languageNames.cg}</MenuItem>
+      </Select>
+    </FormControl>
+  );
+}

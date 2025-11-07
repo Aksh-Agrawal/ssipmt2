@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps API Key Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #map { height: 400px; width: 100%; margin: 20px 0; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Google Maps API Key Tester</h1>
+    
+    <div id="status" class="status info">
+        Testing API key: AIzaSyBN8AG1g3co2s51wn4pzOtzvK_kKWHecYA
+    </div>
+
+    <div id="map"></div>
+
+    <div id="console"></div>
+
+    <script>
+        const API_KEY = 'AIzaSyBN8AG1g3co2s51wn4pzOtzvK_kKWHecYA';
+        const statusDiv = document.getElementById('status');
+        const consoleDiv = document.getElementById('console');
+
+        function log(message, type = 'info') {
+            const p = document.createElement('div');
+            p.className = 'status ' + type;
+            p.textContent = message;
+            consoleDiv.appendChild(p);
+            console.log(message);
+        }
+
+        // Load Google Maps
+        function initMap() {
+            log('✅ Google Maps loaded successfully!', 'success');
+            
+            const raipur = { lat: 21.2514, lng: 81.6296 };
+            
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                center: raipur,
+            });
+
+            new google.maps.Marker({
+                position: raipur,
+                map: map,
+                title: 'Raipur, Chhattisgarh'
+            });
+
+            log('✅ Map rendered with marker at Raipur', 'success');
+            statusDiv.className = 'status success';
+            statusDiv.textContent = '✅ API Key is working! Maps JavaScript API is enabled.';
+        }
+
+        // Error handler
+        window.gm_authFailure = function() {
+            log('❌ Authentication failed! API key is invalid or restricted.', 'error');
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = `
+                <strong>❌ API Key Error</strong><br><br>
+                Possible causes:<br>
+                1. Maps JavaScript API is not enabled<br>
+                2. API key has referrer restrictions blocking localhost<br>
+                3. Billing not enabled (required even for free tier)<br><br>
+                <strong>Solutions:</strong><br>
+                1. Go to: <a href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com" target="_blank">Enable Maps JavaScript API</a><br>
+                2. Go to: <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Check API Key Restrictions</a><br>
+                3. Allow HTTP referrer: <code>localhost:*</code> or <code>*</code> for testing
+            `;
+        };
+
+        // Load the script
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap&libraries=visualization`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onerror = function() {
+            log('❌ Failed to load Google Maps script', 'error');
+            statusDiv.className = 'status error';
+            statusDiv.textContent = '❌ Failed to load Google Maps. Check your internet connection.';
+        };
+
+        document.head.appendChild(script);
+    </script>
+
+    <hr>
+    <h2>Quick Fixes:</h2>
+    <ol>
+        <li><strong>Enable Maps JavaScript API:</strong>
+            <ul>
+                <li>Visit: <a href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com" target="_blank">Google Cloud Console - Maps API</a></li>
+                <li>Click "Enable"</li>
+            </ul>
+        </li>
+        <li><strong>Check API Key Restrictions:</strong>
+            <ul>
+                <li>Visit: <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console - Credentials</a></li>
+                <li>Click your API key</li>
+                <li>Under "Application restrictions" → Select "None" (for testing)</li>
+                <li>Or add HTTP referrer: <code>localhost:*</code></li>
+                <li>Under "API restrictions" → Ensure "Maps JavaScript API" is checked</li>
+                <li>Click "Save"</li>
+            </ul>
+        </li>
+        <li><strong>Enable Billing:</strong>
+            <ul>
+                <li>Visit: <a href="https://console.cloud.google.com/billing" target="_blank">Google Cloud Console - Billing</a></li>
+                <li>Link a billing account (free $300 credit available)</li>
+                <li>Note: Maps has generous free tier (28,000 loads/month)</li>
+            </ul>
+        </li>
+    </ol>
+</body>
+</html>

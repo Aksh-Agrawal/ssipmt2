@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS road_segments (
 CREATE TABLE IF NOT EXISTS traffic_data (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   road_segment_id UUID NOT NULL REFERENCES road_segments(id) ON DELETE CASCADE,
-  date DATE NOT NULL,
+  "date" DATE NOT NULL,
   hour INTEGER NOT NULL CHECK (hour >= 0 AND hour <= 23),
   day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6), -- 0=Sunday
   vehicle_count INTEGER NOT NULL DEFAULT 0,
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS special_events (
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_traffic_data_segment ON traffic_data(road_segment_id);
-CREATE INDEX IF NOT EXISTS idx_traffic_data_date ON traffic_data(date, hour);
+CREATE INDEX IF NOT EXISTS idx_traffic_data_date ON traffic_data("date", hour);
 CREATE INDEX IF NOT EXISTS idx_road_closures_segment ON road_closures(road_segment_id);
 CREATE INDEX IF NOT EXISTS idx_road_closures_time ON road_closures(start_time, end_time);
 CREATE INDEX IF NOT EXISTS idx_road_closures_simulation ON road_closures(is_simulation);

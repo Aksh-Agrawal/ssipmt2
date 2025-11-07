@@ -29,7 +29,7 @@ INSERT INTO road_segments (name, road_name, start_point, end_point, start_lat, s
 
 -- Insert historical traffic data (sample for different times and conditions)
 -- Peak morning hours (9-11 AM) - High congestion
-INSERT INTO traffic_data (road_segment_id, date, hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes) 
+INSERT INTO traffic_data (road_segment_id, "date", hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes) 
 SELECT 
   id,
   CURRENT_DATE - (random() * 30)::integer,
@@ -48,7 +48,7 @@ WHERE road_type IN ('major', 'arterial')
 LIMIT 50;
 
 -- Evening rush (5-7 PM) - Very high congestion
-INSERT INTO traffic_data (road_segment_id, date, hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes)
+INSERT INTO traffic_data (road_segment_id, "date", hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes)
 SELECT 
   id,
   CURRENT_DATE - (random() * 30)::integer,
@@ -66,7 +66,7 @@ WHERE road_type IN ('major', 'arterial')
 LIMIT 50;
 
 -- Off-peak hours (2-4 PM) - Low to moderate
-INSERT INTO traffic_data (road_segment_id, date, hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes)
+INSERT INTO traffic_data (road_segment_id, "date", hour, day_of_week, vehicle_count, avg_speed, congestion_level, travel_time_minutes)
 SELECT 
   id,
   CURRENT_DATE - (random() * 30)::integer,

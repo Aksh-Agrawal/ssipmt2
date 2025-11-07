@@ -20,17 +20,15 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  Mic,
-  MicOff,
   PhotoCamera,
   Send,
   MyLocation,
   Delete,
-  PlayArrow,
-  Stop,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/nextjs';
 import FloatingChatButton from '@/app/components/FloatingChatButton';
+import VoiceRecorder from '@/app/components/VoiceRecorder';
+import PhotoVerifier from '@/app/components/PhotoVerifier';
 
 type Language = 'en' | 'hi' | 'cg';
 
@@ -45,8 +43,6 @@ export default function ReportPage() {
   
   // Form state
   const [language, setLanguage] = useState<Language>('en');
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [transcription, setTranscription] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [location, setLocation] = useState<Location | null>(null);
@@ -58,8 +54,6 @@ export default function ReportPage() {
   const [error, setError] = useState('');
   
   // Refs
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Language labels
@@ -86,83 +80,38 @@ export default function ReportPage() {
     }
   }, []);
 
-  // Start voice recording
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        
-        // Send to voice API for transcription
-        await transcribeAudio(audioBlob);
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setError('');
-    } catch (err) {
-      console.error('Error accessing microphone:', err);
-      setError('Could not access microphone. Please grant permission.');
-    }
-  };
-
-  // Stop voice recording
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  // Transcribe audio using voice API (Deepgram STT)
-  const transcribeAudio = async (blob: Blob) => {
-    try {
-      const formData = new FormData();
-      formData.append('audio', blob, 'recording.webm');
-      formData.append('language', language);
-
-      const response = await fetch('/api/voice', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Transcription failed');
-      }
-
-      const result = await response.json();
-      setTranscription(result.transcription);
-      
-      // Show if using mock data
-      if (result.mock) {
-        console.log('Using mock transcription (Deepgram API key not configured)');
-      }
-    } catch (err) {
-      console.error('Transcription error:', err);
-      setError('Failed to transcribe audio. Please try typing instead.');
-    }
-  };
-
   // Handle photo upload
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
       const newPhotos = Array.from(files).slice(0, 3 - photos.length);
       setPhotos([...photos, ...newPhotos]);
+    }
+  };
+
+  // Handle voice transcription from VoiceRecorder component
+  const handleVoiceTranscription = (result: any) => {
+    console.log('Voice transcription result:', result);
+    
+    setTranscription(result.transcription);
+    
+    // Auto-fill form fields from AI extraction
+    if (result.reportDetails) {
+      if (result.reportDetails.category) {
+        setCategory(result.reportDetails.category);
+      }
+      if (result.reportDetails.priority) {
+        setPriority(result.reportDetails.priority);
+      }
+      
+      // Show AI suggestion with NLP data
+      setAiSuggestion({
+        ai_category: result.reportDetails.category,
+        ai_priority: result.reportDetails.priority,
+        ai_location: result.reportDetails.location,
+        ai_intent: result.nlp?.intent,
+        ai_reasoning: `Detected ${result.nlp?.intent} intent from voice input`,
+      });
     }
   };
 
@@ -197,7 +146,7 @@ export default function ReportPage() {
         },
         address: location.address || '',
         photos: photos.map(p => p.name), // TODO: Upload photos to storage first
-        input_method: audioBlob ? 'voice' : 'text',
+        input_method: transcription ? 'voice' : 'text',
         input_language: language,
         voice_transcription: transcription,
         use_ai_categorization: true, // Enable AI categorization
@@ -229,7 +178,6 @@ export default function ReportPage() {
       setTimeout(() => {
         setTranscription('');
         setPhotos([]);
-        setAudioBlob(null);
         setCategory('');
         setPriority('');
         setAiSuggestion(null);
@@ -316,61 +264,13 @@ export default function ReportPage() {
                 🎤 Voice Recording
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {isRecording 
-                  ? 'Recording... Click stop when finished'
-                  : 'Tap the microphone to start recording your report'}
+                Tap the microphone to record your report in {languageLabels[language]}
               </Typography>
               
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                {!isRecording ? (
-                  <IconButton
-                    onClick={startRecording}
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      backgroundColor: '#1976d2',
-                      color: 'white',
-                      '&:hover': { backgroundColor: '#1565c0' },
-                    }}
-                  >
-                    <Mic sx={{ fontSize: 40 }} />
-                  </IconButton>
-                ) : (
-                  <IconButton
-                    onClick={stopRecording}
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      backgroundColor: '#d32f2f',
-                      color: 'white',
-                      animation: 'pulse 1.5s infinite',
-                      '@keyframes pulse': {
-                        '0%': { transform: 'scale(1)' },
-                        '50%': { transform: 'scale(1.1)' },
-                        '100%': { transform: 'scale(1)' },
-                      },
-                    }}
-                  >
-                    <Stop sx={{ fontSize: 40 }} />
-                  </IconButton>
-                )}
-              </Box>
-
-              {audioBlob && !isRecording && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip label="Recording saved" color="success" size="small" />
-                  <Button 
-                    size="small" 
-                    startIcon={<Delete />}
-                    onClick={() => {
-                      setAudioBlob(null);
-                      setTranscription('');
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              )}
+              <VoiceRecorder 
+                onTranscription={handleVoiceTranscription}
+                language={language}
+              />
             </CardContent>
           </Card>
 
@@ -431,32 +331,44 @@ export default function ReportPage() {
               </Button>
 
               {photos.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                   {photos.map((photo, index) => (
-                    <Box key={index} sx={{ position: 'relative' }}>
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Upload ${index + 1}`}
-                        style={{
-                          width: 100,
-                          height: 100,
-                          objectFit: 'cover',
-                          borderRadius: 8,
-                        }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => removePhoto(index)}
-                        sx={{
-                          position: 'absolute',
-                          top: -8,
-                          right: -8,
-                          backgroundColor: 'white',
-                          '&:hover': { backgroundColor: '#f5f5f5' },
-                        }}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
+                    <Box key={index} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {/* Photo Preview */}
+                      <Box sx={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
+                        <img
+                          src={URL.createObjectURL(photo)}
+                          alt={`Upload ${index + 1}`}
+                          style={{
+                            width: 200,
+                            height: 200,
+                            objectFit: 'cover',
+                            borderRadius: 8,
+                          }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={() => removePhoto(index)}
+                          sx={{
+                            position: 'absolute',
+                            top: -8,
+                            right: -8,
+                            backgroundColor: 'white',
+                            '&:hover': { backgroundColor: '#f5f5f5' },
+                          }}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      
+                      {/* Photo Verification Status */}
+                      {location && (
+                        <PhotoVerifier 
+                          file={photo}
+                          expectedLatitude={location.latitude}
+                          expectedLongitude={location.longitude}
+                        />
+                      )}
                     </Box>
                   ))}
                 </Box>
