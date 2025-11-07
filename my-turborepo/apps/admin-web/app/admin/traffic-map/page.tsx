@@ -33,6 +33,13 @@ import {
   Fullscreen,
   FilterList,
 } from '@mui/icons-material';
+import dynamic from 'next/dynamic';
+
+// Dynamic import to avoid SSR issues with Google Maps
+const TrafficMapComponent = dynamic(
+  () => import('../../components/TrafficMapComponent'),
+  { ssr: false }
+);
 
 interface TrafficIncident {
   id: string;
@@ -56,6 +63,7 @@ export default function TrafficMapPage() {
   const [showIncidents, setShowIncidents] = useState(true);
   const [showCameras, setShowCameras] = useState(true);
   const [showSensors, setShowSensors] = useState(true);
+  const [showRoadClosures, setShowRoadClosures] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Mock data
@@ -191,68 +199,28 @@ export default function TrafficMapPage() {
                   control={<Switch checked={showSensors} onChange={(e) => setShowSensors(e.target.checked)} size="small" />}
                   label="Sensors"
                 />
+                <FormControlLabel
+                  control={<Switch checked={showRoadClosures} onChange={(e) => setShowRoadClosures(e.target.checked)} size="small" />}
+                  label="Road Closures"
+                />
               </Box>
             </Paper>
 
-            {/* Map Container */}
+            {/* Map Container - Now with Real Google Maps */}
             <Paper
               elevation={3}
               sx={{
                 height: 600,
-                backgroundColor: '#e0e0e0',
-                backgroundImage: 'linear-gradient(45deg, #f5f5f5 25%, transparent 25%, transparent 75%, #f5f5f5 75%), linear-gradient(45deg, #f5f5f5 25%, transparent 25%, transparent 75%, #f5f5f5 75%)',
-                backgroundSize: '20px 20px',
-                backgroundPosition: '0 0, 10px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
                 overflow: 'hidden',
+                position: 'relative',
               }}
             >
-              <Box sx={{ textAlign: 'center', p: 4 }}>
-                <MapIcon sx={{ fontSize: 80, color: '#9e9e9e', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  Interactive Traffic Map
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Integration with Google Maps API / Mapbox for live traffic visualization
-                </Typography>
-                <Chip label="Current View: Traffic Layer" color="primary" />
-              </Box>
-
-              {/* Overlay Legend */}
-              <Paper
-                sx={{
-                  position: 'absolute',
-                  bottom: 20,
-                  left: 20,
-                  p: 2,
-                  minWidth: 200,
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                  Traffic Density
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 30, height: 10, backgroundColor: '#388e3c', borderRadius: 1 }} />
-                    <Typography variant="caption">Low</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 30, height: 10, backgroundColor: '#fbc02d', borderRadius: 1 }} />
-                    <Typography variant="caption">Medium</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 30, height: 10, backgroundColor: '#f57c00', borderRadius: 1 }} />
-                    <Typography variant="caption">High</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 30, height: 10, backgroundColor: '#d32f2f', borderRadius: 1 }} />
-                    <Typography variant="caption">Critical</Typography>
-                  </Box>
-                </Box>
-              </Paper>
+              <TrafficMapComponent
+                showTrafficLayer={mapView === 'traffic'}
+                showHeatmap={mapView === 'heatmap'}
+                showIncidents={showIncidents}
+                showRoadClosures={showRoadClosures}
+              />
             </Paper>
 
             {/* Traffic Stats */}

@@ -58,3 +58,14 @@ export type { Article } from './llmResponseFormatter.js';
 
 // Export PipeCat processors (language detection + STT)
 export { processAudioPipeline, processOutgoingAudioPipeline } from './pipecatProcessors.js';
+
+// Export Voice AI Services
+export { detectLanguage, detectLanguageFromText } from './swaramAiService.js';
+export { transcribeAudio, transcribeAudioStream } from './deepgramSttService.js';
+export { synthesizeText, synthesizeAndStream } from './criteriaTtsService.js';
+export { processVoiceInput, processVoiceWithResponse, extractReportDetails } from './voicePipeline.js';
+export { generateChatResponse, categorizeReport } from './groqChatbot.js';
+
+// Export Config
+export { CONFIG } from './config.js';
+export type { AgentConfig } from './config.js';

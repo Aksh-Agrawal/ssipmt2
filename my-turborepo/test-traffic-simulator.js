@@ -3,7 +3,7 @@
  * Run after database setup is complete
  */
 
-const API_BASE = 'http://localhost:3000/api/admin';
+const API_BASE = 'http://localhost:3002/api/admin';
 
 console.log('🚦 TRAFFIC SIMULATOR API TESTS');
 console.log('===============================\n');
@@ -123,7 +123,7 @@ async function runTests() {
   console.log('Make sure:');
   console.log('1. Database schema is applied in Supabase');
   console.log('2. Seed data is loaded');
-  console.log('3. Admin app is running on http://localhost:3000\n');
+  console.log('3. Admin app is running on http://localhost:3002\n');
   
   // Small delay to let user read
   await new Promise(resolve => setTimeout(resolve, 2000));
@@ -138,7 +138,7 @@ async function runTests() {
   
   console.log('\n✅ Tests complete!');
   console.log('\n🎯 Next steps:');
-  console.log('1. Open http://localhost:3000/admin/simulate in browser');
+  console.log('1. Open http://localhost:3002/admin/simulate in browser');
   console.log('2. Select a road segment');
   console.log('3. Set closure details');
   console.log('4. Click "Run Simulation"');

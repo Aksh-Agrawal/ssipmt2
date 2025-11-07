@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
+// import { LanguageProvider } from './lib/LanguageContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -31,7 +32,11 @@ export default function RootLayout({
     >
       <html lang="en" className={inter.variable}>
         <body>
-          <ThemeRegistry>{children}</ThemeRegistry>
+          <ThemeRegistry>
+            {/* <LanguageProvider> */}
+              {children}
+            {/* </LanguageProvider> */}
+          </ThemeRegistry>
         </body>
       </html>
     </ClerkProvider>

@@ -13,11 +13,16 @@
     "verify-traffic": "node --loader ts-node/esm src/verify-traffic.ts"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
+    "@google-cloud/language": "^7.2.1",
+    "@react-google-maps/api": "^2.20.7",
     "@repo/shared-types": "*",
     "@upstash/redis": "^1.35.6",
+    "axios": "^1.13.2",
+    "form-data": "^4.0.4",
+    "groq-sdk": "^0.34.0",
     "openai": "^4.75.0",
-    "pino": "^8.0.0",
-  "axios": "^1.6.0"
+    "pino": "^8.0.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
