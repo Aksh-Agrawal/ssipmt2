@@ -1,0 +1,253 @@
+# 🔒 SECURITY: API Keys Compromised - Action Required# 🔒 SECURITY: API Keys Compromised - Action Required
+
+
+
+## ⚠️ What Happened## ⚠️ What Happened
+
+
+
+Your API keys were accidentally exposed in git commit history:Your API keys were accidentally exposed in git commit history:
+
+- **File**: `my-turborepo/GEMINI_INTEGRATION_COMPLETE.md`- **File**: `my-turborepo/GEMINI_INTEGRATION_COMPLETE.md`
+
+- **Commit**: `2c9e0747` (now rewritten)- **Commit**: `2c9e0747` (now rewritten)
+
+- **Keys exposed**: Groq, Gemini, Deepgram, Sarvam, Cartesia- **Keys exposed**: Groq, Gemini, Deepgram, Sarvam, Cartesia
+
+
+
+## ✅ What Was Fixed## ✅ What Was Fixed
+
+
+
+1. ✅ Removed API keys from documentation1. ✅ Removed API keys from documentation
+
+2. ✅ Rewrote git history to remove secrets2. ✅ Rewrote git history to remove secrets
+
+3. ✅ Force pushed clean commits to GitHub3. ✅ Force pushed clean commits to GitHub
+
+
+
+## 🚨 ACTION REQUIRED (URGENT)## 🚨 ACTION REQUIRED (URGENT)
+
+
+
+### 1. Regenerate Compromised API Keys### 1. Regenerate Compromised API Keys
+
+
+
+**Groq API** (CRITICAL - was in public commit):**Groq API** (CRITICAL - was in public commit):
+
+``````
+
+https://console.groq.com/keyshttps://console.groq.com/keys
+
+``````
+
+1. Go to Groq Console1. Go to Groq Console
+
+2. Delete the old key (removed for security)2. Delete the old key: `gsk_...` (removed for security)
+
+3. Generate a new key3. Generate a new key
+
+4. Update `.env.local` files4. Update `.env.local` files
+
+
+
+**Gemini API** (CRITICAL):**Gemini API** (CRITICAL):
+
+``````
+
+https://aistudio.google.com/app/apikeyhttps://aistudio.google.com/app/apikey
+
+``````
+
+1. Go to Google AI Studio1. Go to Google AI Studio
+
+2. Regenerate your API key2. Regenerate your API key
+
+3. Update `.env.local` files3. Update `.env.local` files
+
+
+
+**Other APIs** (Recommended):**Other APIs** (Recommended):
+
+- **Deepgram**: https://console.deepgram.com/- **Deepgram**: https://console.deepgram.com/
+
+- **Sarvam AI**: https://www.sarvam.ai/- **Sarvam AI**: https://www.sarvam.ai/
+
+- **Cartesia**: https://play.cartesia.ai/console- **Cartesia**: https://play.cartesia.ai/console
+
+
+
+### 2. Update Your Local Environment Files### 2. Update Your Local Environment Files
+
+
+
+After regenerating keys, update these files:After regenerating keys, update these files:
+
+
+
+**User Portal**:**User Portal**:
+
+```bash```bash
+
+# apps/web-platform/.env.local# apps/web-platform/.env.local
+
+GEMINI_API_KEY=your_NEW_gemini_keyGEMINI_API_KEY=your_NEW_gemini_key
+
+GROQ_API_KEY=your_NEW_groq_keyGROQ_API_KEY=your_NEW_groq_key
+
+DEEPGRAM_API_KEY=your_NEW_deepgram_keyDEEPGRAM_API_KEY=your_NEW_deepgram_key
+
+SARVAM_API_KEY=your_NEW_sarvam_keySARVAM_API_KEY=your_NEW_sarvam_key
+
+CARTESIA_API_KEY=your_NEW_cartesia_keyCARTESIA_API_KEY=your_NEW_cartesia_key
+
+``````
+
+
+
+**Admin Portal**:**Admin Portal**:
+
+```bash```bash
+
+# apps/admin-web/.env.local# apps/admin-web/.env.local
+
+GEMINI_API_KEY=your_NEW_gemini_keyGEMINI_API_KEY=your_NEW_gemini_key
+
+GROQ_API_KEY=your_NEW_groq_key```
+
+```
+
+### 3. Never Commit Keys Again
+
+### 3. Never Commit Keys Again
+
+✅ **DO**:
+
+✅ **DO**:- Store keys in `.env.local` files (already in `.gitignore`)
+
+- Store keys in `.env.local` files (already in `.gitignore`)- Use environment variables
+
+- Use environment variables- Use placeholders in documentation: `your_api_key_here`
+
+- Use placeholders in documentation: `your_api_key_here`
+
+❌ **DON'T**:
+
+❌ **DON'T**:- Commit actual API keys to git
+
+- Commit actual API keys to git- Put keys in `.md` files
+
+- Put keys in `.md` files- Share keys in public repositories
+
+- Share keys in public repositories
+
+## 📋 Security Checklist
+
+## 📋 Security Checklist
+
+- [ ] Regenerated Groq API key
+
+- [ ] Regenerated Groq API key- [ ] Regenerated Gemini API key  
+
+- [ ] Regenerated Gemini API key  - [ ] Updated `apps/web-platform/.env.local`
+
+- [ ] Updated `apps/web-platform/.env.local`- [ ] Updated `apps/admin-web/.env.local`
+
+- [ ] Updated `apps/admin-web/.env.local`- [ ] Tested apps still work with new keys
+
+- [ ] Tested apps still work with new keys- [ ] Deleted old compromised keys from provider dashboards
+
+- [ ] Deleted old compromised keys from provider dashboards
+
+## 🔐 Best Practices Going Forward
+
+## 🔐 Best Practices Going Forward
+
+### Use Environment Variables
+
+### Use Environment Variables
+
+```typescript
+
+```typescript// ✅ CORRECT
+
+// ✅ CORRECTconst apiKey = process.env.GROQ_API_KEY;
+
+const apiKey = process.env.GROQ_API_KEY;
+
+// ❌ WRONG
+
+// ❌ WRONG - Never hardcode keysconst apiKey = "gsk_actual_key_here";
+
+const apiKey = "actual_key_here";```
+
+```
+
+### Check Before Committing
+
+### Check Before Committing
+
+```bash
+
+```bash# Check for accidentally committed secrets
+
+# Check for accidentally committed secretsgit diff --cached | grep -i "api.*key"
+
+git diff --cached | grep -i "api.*key"git diff --cached | grep -E "(gsk_|AIzaSy|sk_)"
+
+git diff --cached | grep -E "(gsk_|AIzaSy|sk_)"```
+
+```
+
+### Use .gitignore
+
+### Use .gitignore
+
+Already configured in your project:
+
+Already configured in your project:```
+
+```.env
+
+.env.env.local
+
+.env.local.env.*.local
+
+.env.*.local```
+
+```
+
+## 📚 Resources
+
+## 📚 Resources
+
+- [GitHub Secret Scanning](https://docs.github.com/en/code-security/secret-scanning)
+
+- [GitHub Secret Scanning](https://docs.github.com/en/code-security/secret-scanning)- [How to Remove Secrets from Git](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)
+
+- [How to Remove Secrets from Git](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)- [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/) (for large-scale secret removal)
+
+- [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/) (for large-scale secret removal)
+
+## ✅ Status
+
+## ✅ Status
+
+- **Git History**: ✅ Cleaned (secrets removed)
+
+- **Git History**: ✅ Cleaned (secrets removed using git filter-branch)- **GitHub**: ✅ Push successful
+
+- **GitHub**: ⏳ Ready to push- **API Keys**: ⚠️ **ACTION REQUIRED** - Regenerate now!
+
+- **API Keys**: ⚠️ **ACTION REQUIRED** - Regenerate now!
+
+---
+
+---
+
+**REMINDER**: The exposed keys are now public and should be considered compromised. Regenerate them immediately!
+
+**REMINDER**: The exposed keys are now public and should be considered compromised. Regenerate them immediately!
