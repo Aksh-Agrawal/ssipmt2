@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="status">Status: Disconnected</div>
+    <button onclick="connectWS()">Connect to ws://localhost:8002/ws</button>
+    <button onclick="connectWSMain()">Connect to ws://localhost:8001/voice/ws/en</button>
+    <button onclick="sendTest()">Send Test Message</button>
+    <div id="messages"></div>
+
+    <script>
+        let ws = null;
+
+        function connectWS() {
+            console.log('Connecting to test server (port 8002)...');
+            ws = new WebSocket('ws://localhost:8002/ws');
+            
+            ws.onopen = () => {
+                console.log('✅ Connected to test server!');
+                document.getElementById('status').innerText = 'Status: Connected to test server (8002)';
+            };
+            
+            ws.onmessage = (event) => {
+                console.log('Message:', event.data);
+                document.getElementById('messages').innerHTML += '<p>Received: ' + event.data + '</p>';
+            };
+            
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                document.getElementById('status').innerText = 'Status: Error - ' + error;
+            };
+            
+            ws.onclose = () => {
+                console.log('Connection closed');
+                document.getElementById('status').innerText = 'Status: Disconnected';
+            };
+        }
+
+        function connectWSMain() {
+            console.log('Connecting to main server (port 8001)...');
+            ws = new WebSocket('ws://localhost:8001/voice/ws/en');
+            
+            ws.onopen = () => {
+                console.log('✅ Connected to main server!');
+                document.getElementById('status').innerText = 'Status: Connected to main server (8001)';
+            };
+            
+            ws.onmessage = (event) => {
+                console.log('Message:', event.data);
+                document.getElementById('messages').innerHTML += '<p>Received: ' + event.data + '</p>';
+            };
+            
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                document.getElementById('status').innerText = 'Status: Error';
+            };
+            
+            ws.onclose = (event) => {
+                console.log('Connection closed:', event.code, event.reason);
+                document.getElementById('status').innerText = 'Status: Disconnected - Code: ' + event.code;
+            };
+        }
+
+        function sendTest() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send('Hello from browser!');
+                console.log('Sent test message');
+            } else {
+                console.error('WebSocket not connected');
+            }
+        }
+    </script>
+</body>
+</html>
