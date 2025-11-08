@@ -1,0 +1,27 @@
+# Pipecat Voice AI Dependencies
+pipecat-ai[daily,silero]>=0.0.40
+
+# Speech-to-Text
+deepgram-sdk>=3.0.0
+
+# Language Models
+groq>=0.4.0
+google-generativeai>=0.3.0
+
+# Text-to-Speech
+cartesia>=1.0.0
+
+# Web Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+
+# Utilities
+python-dotenv>=1.0.0
+loguru>=0.7.0
+aiofiles>=23.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Database (Supabase)
+supabase>=2.0.0
